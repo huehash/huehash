@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>huehash playground</title>
+  <meta name="description" content="Turn any name into a stable colour that stays readable on your dark or light surface." />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='%23e1ac67'/%3E%3C/svg%3E" />
+</head>
+<body>
+  <header class="top">
+    <a class="mark" id="mark" href="./">huehash</a>
+    <div class="surfaces" role="group" aria-label="Surface colour" id="surfaces"></div>
+    <div class="top-actions">
+      <button type="button" class="quiet" id="share">Copy link</button>
+      <code class="install">npm i huehash</code>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-text">
+        <h1 id="hero-title" class="sr-only">Try a name</h1>
+        <label class="sr-only" for="word">Type a name</label>
+        <input id="word" class="specimen" type="text" spellcheck="false" autocomplete="off" autocapitalize="off" maxlength="40" />
+        <p class="readout" id="readout" aria-live="polite"></p>
+        <p class="lede">The same name always gets the same colour, and it stays readable on the surface you pick. Type anything above.</p>
+      </div>
+      <figure class="wheel" id="wheel"></figure>
+    </section>
+
+    <section class="band" aria-labelledby="set-title">
+      <div class="band-head">
+        <h2 id="set-title">A set of names</h2>
+        <p>One per line. A path like <span class="inline-code">acme/platform/billing</span> colours every part on its own.</p>
+      </div>
+      <div class="set-grid">
+        <textarea id="names" rows="9" spellcheck="false" aria-label="Names, one per line"></textarea>
+        <ul class="chips" id="chips" aria-label="Colours for each name"></ul>
+      </div>
+    </section>
+
+    <section class="band" aria-labelledby="tune-title">
+      <div class="band-head">
+        <h2 id="tune-title">Tune it</h2>
+        <p>Every colour is checked against the surface, so the contrast you ask for is the contrast you get.</p>
+      </div>
+      <div class="controls" id="controls"></div>
+    </section>
+
+    <section class="band" aria-labelledby="context-title">
+      <div class="band-head">
+        <h2 id="context-title">In context</h2>
+        <p>The same colours in the places you would use them.</p>
+      </div>
+      <div class="context" id="context"></div>
+    </section>
+
+    <section class="band" aria-labelledby="use-title">
+      <div class="band-head">
+        <h2 id="use-title">Use it</h2>
+        <p>Always up to date with what you set above.</p>
+      </div>
+      <div class="use">
+        <div class="tabs" role="tablist" id="tabs" aria-label="Output format"></div>
+        <div class="code-wrap">
+          <button type="button" class="quiet copy" id="copy">Copy</button>
+          <pre id="code" tabindex="0"></pre>
+        </div>
+      </div>
+    </section>
+
+    <section class="band" aria-labelledby="cache-title">
+      <div class="band-head">
+        <h2 id="cache-title">Remembering results</h2>
+        <p>A name with the same settings is calculated once, then answered from a small cache.</p>
+      </div>
+      <div class="cache" id="cache"></div>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <span>MIT licensed. No dependencies, about 6 kB gzipped.</span>
+    <span id="foot-note"></span>
+  </footer>
+
+  <script type="module" src="./src/main.ts"></script>
+</body>
+</html>

@@ -1,0 +1,68 @@
+{
+  "name": "huehash",
+  "version": "0.1.0",
+  "description": "A stable, readable colour for any name. Hash a string to a hex that fits your dark (or light) UI, with guaranteed contrast.",
+  "keywords": [
+    "color",
+    "colour",
+    "hash",
+    "oklch",
+    "dark-mode",
+    "avatar",
+    "tag",
+    "label",
+    "deterministic",
+    "contrast",
+    "wcag"
+  ],
+  "license": "MIT",
+  "author": "Kostas Trichas",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/huehash/huehash.git"
+  },
+  "bugs": {
+    "url": "https://github.com/huehash/huehash/issues"
+  },
+  "homepage": "https://huehash.github.io/huehash/",
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test test/*.test.ts",
+    "playground": "vite playground",
+    "playground:build": "vite build playground",
+    "prepublishOnly": "npm run typecheck && npm test && npm run build",
+    "bench": "tsx bench/cache.ts"
+  },
+  "devDependencies": {
+    "@fontsource-variable/martian-mono": "^5.3.0",
+    "@fontsource/instrument-serif": "^5.3.0",
+    "@types/jsdom": "^30.0.0",
+    "@types/node": "^26.6.4",
+    "esbuild": "^0.28.2",
+    "jsdom": "^30.1.2",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.3"
+  }
+}
