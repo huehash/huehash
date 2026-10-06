@@ -199,7 +199,7 @@ test('landing: stable: a palette by position reshuffles when the list changes, a
 
 test('landing: readable: the contrast you ask for holds on every surface', () => {
   const dom = open('landing')
-  assert.equal(all(dom, '#readable-body .panel').length, 5)
+  assert.equal(all(dom, '#readable-body .panel').length, 4)
   type(dom, '#contrast-slider', '10')
   assert.equal(q(dom, '#contrast-value').textContent, '10:1 AAA')
   assert.match(q(dom, '#readable-code').textContent ?? '', /minContrast: 10,/)
@@ -359,10 +359,10 @@ test('landing: the colour picker survives a repaint, so it does not close while 
 
 test('landing: the playground links carry the chosen surface', () => {
   const dom = open('landing')
-  click(dom, '[data-surface="#eef0f3"]')
+  click(dom, '[data-surface="#0f3552"]')
   ;['#nav-try', '#cta-try', '#cta-try-2'].forEach(selector => {
     const href = (q(dom, selector) as HTMLAnchorElement).getAttribute('href')!
-    assert.deepEqual(decodeHash(href.slice('./try/'.length)), { surface: '#eef0f3' })
+    assert.deepEqual(decodeHash(href.slice('./try/'.length)), { surface: '#0f3552' })
   })
 })
 
@@ -382,13 +382,13 @@ test('landing: the settings live in the link, so a link restores them', () => {
   type(dom, '#contrast-slider', '9')
   type(dom, '#distance-slider', '60')
   type(dom, '#width-slider', '40')
-  click(dom, '[data-surface="#160f19"]')
+  click(dom, '[data-surface="#3b1a3f"]')
   const again = open('landing', dom.window.location.hash)
   assert.equal((q(again, '#try') as HTMLInputElement).value, 'nebula')
   assert.equal((q(again, '#contrast-slider') as HTMLInputElement).value, '9')
   assert.equal((q(again, '#distance-slider') as HTMLInputElement).value, '60')
   assert.equal((q(again, '#width-slider') as HTMLInputElement).value, '40')
-  assert.equal(again.window.document.documentElement.style.getPropertyValue('--surface'), '#160f19')
+  assert.equal(again.window.document.documentElement.style.getPropertyValue('--surface'), '#3b1a3f')
 })
 
 test('landing and playground: a link with nonsense in it opens on the defaults', () => {
@@ -673,13 +673,13 @@ test('playground: times 100,000 lookups with and without the cache', async () =>
 test('playground: the settings live in the link, so a link restores them', () => {
   const dom = open('try')
   type(dom, '#distance', '84')
-  click(dom, '[data-surface="#160f19"]')
+  click(dom, '[data-surface="#3b1a3f"]')
   click(dom, '[data-scene="chart"]')
   const hash = dom.window.location.hash
   assert.ok(hash.length > 1)
   const again = open('try', hash)
   assert.equal((q(again, '#distance') as HTMLInputElement).value, '84')
-  assert.equal(again.window.document.documentElement.style.getPropertyValue('--surface'), '#160f19')
+  assert.equal(again.window.document.documentElement.style.getPropertyValue('--surface'), '#3b1a3f')
   assert.equal(q(again, '[data-scene="chart"]').getAttribute('aria-selected'), 'true')
 })
 

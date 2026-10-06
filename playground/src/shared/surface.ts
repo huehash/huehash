@@ -37,12 +37,10 @@ export function inkFor(surface: string): Ink {
   }
 }
 
+/** Few, and clearly different from each other: a near-black, two deep colours and white. */
 export const SURFACES = [
   { name: 'carbon', hex: '#0d1117' },
-  { name: 'midnight', hex: '#0a0f1f' },
-  { name: 'forest', hex: '#0c1411' },
-  { name: 'aubergine', hex: '#160f19' },
-  { name: 'graphite', hex: '#1c1d21' },
+  { name: 'ocean', hex: '#0f3552' },
+  { name: 'plum', hex: '#3b1a3f' },
   { name: 'daylight', hex: '#ffffff' },
-  { name: 'fog', hex: '#eef0f3' },
 ] as const

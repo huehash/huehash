@@ -54,9 +54,8 @@ export function renderReadable() {
   $('#contrast-value').textContent = `${state.minContrast}:1 ${gradeFor(state.minContrast)}`
   $('#readable-code').textContent = `colorFor('billing', {\n  background: ${jsString(state.surface)},\n  minContrast: ${state.minContrast},\n})\n// ${engine.colorFor('billing', { ...options(), minContrast: state.minContrast })}`
 
-  $('#readable-body').innerHTML = ['carbon', 'midnight', 'aubergine', 'daylight', 'fog']
-    .map(name => {
-      const surface = SURFACES.find(s => s.name === name)!
+  $('#readable-body').innerHTML = SURFACES
+    .map(surface => {
       const ink = inkFor(surface.hex)
       const colors = engine.colorsFor(PEOPLE, { background: surface.hex, minContrast: state.minContrast, distance: 30 })
       const worst = Math.min(...colors.map(hex => contrastRatio(hex, surface.hex)))
