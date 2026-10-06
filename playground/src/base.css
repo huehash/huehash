@@ -30,7 +30,8 @@ code, pre, .mono { font-family: var(--mono); font-size: 0.78em; }
 
 /* Top bar */
 .top { display: flex; align-items: center; gap: 20px 28px; padding: 18px var(--gutter); flex-wrap: wrap; }
-.mark { font: italic 400 30px/1 var(--serif); text-decoration: none; letter-spacing: 0.01em; transition: color 0.25s ease; }
+.mark { font: italic 600 30px/1 var(--serif); text-decoration: none; letter-spacing: 0.08em; }
+.mark span { transition: color 0.25s ease; }
 .top nav { display: flex; gap: 24px; align-items: center; font-size: 18px; }
 .top nav a { color: var(--muted); text-decoration: none; }
 .top nav a:hover, .top nav a[aria-current='page'] { color: var(--ink); }

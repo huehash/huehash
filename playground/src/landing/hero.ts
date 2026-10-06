@@ -1,5 +1,6 @@
 import { encodeHash } from '../shared/engine.js'
 import { inkFor, SURFACES } from '../shared/surface.js'
+import { renderLogo } from '../shared/logo.js'
 import { $, esc } from '../shared/util.js'
 import { engine, jsString, options, state } from './ctx.js'
 
@@ -32,7 +33,7 @@ export function renderTop() {
   ).join('')
   const custom = $<HTMLInputElement>('#custom-surface')
   if (document.activeElement !== custom) custom.value = state.surface
-  $('#mark').style.color = engine.colorFor('huehash', options())
+  renderLogo($('#mark'), engine, options())
   const link = `./try/#${encodeHash({ surface: state.surface })}`
   ;['#nav-try', '#cta-try', '#cta-try-2'].forEach(selector => ($<HTMLAnchorElement>(selector).href = link))
 }
@@ -50,6 +51,7 @@ export function renderHero() {
 
   $('#try-examples').innerHTML = `<span class="fine">Try</span>${EXAMPLES.map(word => `<button type="button" class="chip" data-action="word" data-word="${word}" style="color:${engine.colorFor(word, options())}">${word}</button>`).join('')}`
 
+  PROMISES.forEach(p => document.getElementById(p.id)?.style.setProperty('--promise', engine.colorFor(p.id, options())))
   $('#promise-index').innerHTML = PROMISES.map(
     p => `<li><a href="#${p.id}"><b style="color:${engine.colorFor(p.id, options())}">${p.name}</b><span>${p.gloss}</span></a></li>`,
   ).join('')

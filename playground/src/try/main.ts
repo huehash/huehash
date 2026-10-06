@@ -11,6 +11,7 @@ import { cleanText, clampNumber, closestPair, colorOptions, DEFAULT_SETTINGS, EV
 import { watchNeighbours } from '../shared/highlight.js'
 import { SCENES } from '../shared/scenes.js'
 import { inkFor, SURFACES } from '../shared/surface.js'
+import { renderLogo } from '../shared/logo.js'
 import { $, esc } from '../shared/util.js'
 import { nearest, wheelSvg } from '../shared/wheel.js'
 
@@ -111,7 +112,7 @@ function renderTop() {
   ).join('')
   const custom = $<HTMLInputElement>('#custom-surface')
   if (document.activeElement !== custom) custom.value = state.surface
-  $('#mark').style.color = engine.colorFor('huehash', colorOptions(state))
+  renderLogo($('#mark'), engine, colorOptions(state))
   $<HTMLAnchorElement>('#nav-home').href = `../#${encodeHash({ surface: state.surface })}`
 }
 

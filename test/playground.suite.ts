@@ -706,3 +706,18 @@ test('playground: an empty list and a single key do not break any view', () => {
   })
   assert.match(q(dom, '#metric').textContent ?? '', /at least two keys/)
 })
+
+test('the logo gives every letter its own colour, kept apart from its neighbours, on both pages', () => {
+  ;(['landing', 'try'] as const).forEach(page => {
+    const dom = open(page)
+    const letters = all(dom, '#mark span')
+    assert.equal(letters.map(letter => letter.textContent).join(''), '#huehash')
+    assert.equal(q(dom, '#mark').getAttribute('aria-label'), 'huehash')
+    const colors = letters.map(letter => rgb(letter.style.color))
+    colors.forEach(hex => assert.ok(contrastRatio(hex, '#0d1117') >= 7))
+    assert.equal(colors[1], colors[4], 'the same letter keeps its colour')
+    assert.deepEqual(colors, colorsFor([...'#huehash'], { background: '#0d1117', distance: 50, neighbours: 2 }))
+    click(dom, '[data-surface="#ffffff"]')
+    all(dom, '#mark span').forEach(letter => assert.ok(contrastRatio(rgb(letter.style.color), '#ffffff') >= 7))
+  })
+})

@@ -204,3 +204,8 @@ main { padding: 0 var(--gutter); }
   .log { grid-template-columns: 62px 78px minmax(0, 1fr); }
   .log-lvl { display: none; }
 }
+
+/* The five promises are numbered in their headings, in the order the page explains them */
+#promises { counter-reset: promise; }
+#promises .chapter { counter-increment: promise; }
+#promises .chapter h3::before { content: counter(promise) '.'; margin-right: 0.28em; font-style: italic; color: var(--promise, var(--faint)); transition: color 0.25s ease; }
