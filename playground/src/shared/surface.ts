@@ -1,5 +1,5 @@
-import { contrastRatio } from '../../src/index.js'
-import { hexToRgb, luminance, parseHex } from '../../src/oklch.js'
+import { contrastRatio } from '../../../src/index.js'
+import { hexToRgb, luminance, parseHex } from '../../../src/oklch.js'
 
 const toHex = (channels: number[]) => `#${channels.map(c => Math.round(Math.min(255, Math.max(0, c))).toString(16).padStart(2, '0')).join('')}`
 

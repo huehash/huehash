@@ -1,6 +1,6 @@
 import { createHuehash } from '../src/index.js'
 
-const NAMES = Array.from({ length: 500 }, (_, i) => `group-${i % 25}/project-${i}`)
+const NAMES = Array.from({ length: 500 }, (_, i) => `item-${i}`)
 const PASSES = 400
 const options = { background: ['#0b0e14', '#171c26'] }
 

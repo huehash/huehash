@@ -1,5 +1,5 @@
-import { hueGap, type HueArc } from '../../src/index.js'
-import { oklchToHex } from '../../src/oklch.js'
+import { hueGap, type HueArc } from '../../../src/index.js'
+import { oklchToHex } from '../../../src/oklch.js'
 
 export type WheelDot = { name: string; hue: number; hex: string }
 
@@ -77,4 +77,16 @@ export function nearest(focus: WheelDot, others: WheelDot[]): { name: string; ga
   if (!pool.length) return null
   const best = pool.reduce((a, b) => (hueGap(a.hue, focus.hue) <= hueGap(b.hue, focus.hue) ? a : b))
   return { name: best.name, gap: hueGap(best.hue, focus.hue) }
+}
+
+/** A small hue ring with one mark on it, for explaining where a single name lands. */
+export function ringSvg({ hue, hex, light, surface }: { hue: number; hex: string; light: boolean; surface: string }): string {
+  const lightness = light ? 0.52 : 0.8
+  const chroma = light ? 0.14 : 0.125
+  const segments = Array.from({ length: 90 }, (_, i) => {
+    const from = i * 4
+    return `<path d="${arc(from, from + 4.6, OUTER, INNER)}" fill="${oklchToHex(lightness, chroma, from + 2)}"/>`
+  }).join('')
+  const [x, y] = polar((OUTER + INNER) / 2, hue)
+  return `<svg viewBox="0 0 ${SIZE} ${SIZE}" role="img" aria-label="The hue ${hue.toFixed(0)} degrees on the colour wheel"><g>${segments}</g><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="19" fill="${hex}" stroke="${surface}" stroke-width="6"/></svg>`
 }

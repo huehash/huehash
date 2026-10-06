@@ -3,87 +3,216 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>huehash playground</title>
-  <meta name="description" content="Turn any name into a stable colour that stays readable on your dark or light surface." />
+  <title>huehash: a colour for every name</title>
+  <meta name="description" content="Give huehash any text and it returns a colour: the same one every time, readable on your dark or light interface, and easy to tell apart from its neighbours." />
+  <meta property="og:title" content="huehash: a colour for every name" />
+  <meta property="og:description" content="Stable, readable colours for any text, with guaranteed contrast and neighbours you can tell apart." />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='%23e1ac67'/%3E%3C/svg%3E" />
 </head>
-<body>
+<body class="landing">
   <header class="top">
     <a class="mark" id="mark" href="./">huehash</a>
-    <div class="surfaces" role="group" aria-label="Surface colour" id="surfaces"></div>
-    <div class="top-actions">
-      <button type="button" class="quiet" id="share">Copy link</button>
-      <code class="install">npm i huehash</code>
+    <nav class="levels" aria-label="Sections">
+      <a href="#idea" data-level="idea">The idea</a>
+      <a href="#promises" data-level="promises">Five promises</a>
+      <a href="#views" data-level="views">In real views</a>
+      <a href="#details" data-level="details">Under the hood</a>
+    </nav>
+    <div class="top-right">
+      <div class="surfaces" role="group" aria-label="Surface colour" id="surfaces">
+        <span class="surface-presets" id="surface-presets"></span>
+        <label class="custom" title="Pick any colour"><span aria-hidden="true">+</span><input type="color" id="custom-surface" value="#0d1117" aria-label="Custom surface colour" /></label>
+      </div>
+      <nav class="links" aria-label="Elsewhere">
+        <a href="./try/" id="nav-try">Playground</a>
+        <a href="https://github.com/huehash/huehash">GitHub</a>
+      </nav>
     </div>
   </header>
 
   <main>
-    <section class="hero" aria-labelledby="hero-title">
-      <div class="hero-text">
-        <h1 id="hero-title" class="sr-only">Try a name</h1>
-        <label class="sr-only" for="word">Type a name</label>
-        <input id="word" class="specimen" type="text" spellcheck="false" autocomplete="off" autocapitalize="off" maxlength="40" />
-        <p class="readout" id="readout" aria-live="polite"></p>
-        <p class="lede">The same name always gets the same colour, and it stays readable on the surface you pick. Type anything above.</p>
-      </div>
-      <figure class="wheel" id="wheel"></figure>
-    </section>
+    <section class="level" id="idea" aria-labelledby="idea-title">
+      <h2 class="sr-only" id="idea-title">The idea</h2>
 
-    <section class="band" aria-labelledby="set-title">
-      <div class="band-head">
-        <h2 id="set-title">A set of names</h2>
-        <p>One per line. A path like <span class="inline-code">acme/platform/billing</span> colours every part on its own.</p>
-      </div>
-      <div class="set-grid">
-        <textarea id="names" rows="9" spellcheck="false" aria-label="Names, one per line"></textarea>
-        <ul class="chips" id="chips" aria-label="Colours for each name"></ul>
-      </div>
-    </section>
-
-    <section class="band" aria-labelledby="tune-title">
-      <div class="band-head">
-        <h2 id="tune-title">Tune it</h2>
-        <p>Every colour is checked against the surface, so the contrast you ask for is the contrast you get.</p>
-      </div>
-      <div class="controls" id="controls"></div>
-    </section>
-
-    <section class="band" aria-labelledby="context-title">
-      <div class="band-head">
-        <h2 id="context-title">In context</h2>
-        <p>The same colours in the places you would use them.</p>
-      </div>
-      <div class="context" id="context"></div>
-    </section>
-
-    <section class="band" aria-labelledby="use-title">
-      <div class="band-head">
-        <h2 id="use-title">Use it</h2>
-        <p>Always up to date with what you set above.</p>
-      </div>
-      <div class="use">
-        <div class="tabs" role="tablist" id="tabs" aria-label="Output format"></div>
-        <div class="code-wrap">
-          <button type="button" class="quiet copy" id="copy">Copy</button>
-          <pre id="code" tabindex="0"></pre>
+      <div class="hero">
+        <h1 id="headline">A colour for every name.</h1>
+        <p class="hero-lede">Give huehash any text and it gives back a colour. The same text always gets the same colour, and the colour always reads on your background.</p>
+        <div class="hero-grid">
+          <div class="try">
+            <label class="sr-only" for="try">Type any text</label>
+            <input id="try" class="try-input" type="text" spellcheck="false" autocomplete="off" autocapitalize="off" maxlength="32" placeholder="orbit" />
+            <p class="try-code mono" id="try-code" aria-live="polite"></p>
+            <div class="try-examples" id="try-examples"></div>
+            <div class="cta">
+              <a class="button" href="./try/" id="cta-try">Open the playground</a>
+              <code class="install">npm install huehash</code>
+            </div>
+          </div>
+          <nav class="promises" aria-label="The five promises">
+            <p class="promises-title">Five things you can rely on</p>
+            <ul id="promise-index"></ul>
+          </nav>
         </div>
       </div>
+
+      <section class="chapter wide" id="how" aria-labelledby="how-title">
+        <header class="chapter-head">
+          <h3 id="how-title">From a name to a colour.</h3>
+          <p>Nothing is looked up and nothing is stored. The colour is worked out from the text, in the same five steps, every time. Change the name and watch each step change with it.</p>
+          <label class="field"><span class="sr-only">Name to follow through the steps</span><input id="how-input" class="how-input" type="text" spellcheck="false" autocomplete="off" autocapitalize="off" maxlength="32" placeholder="orbit" /></label>
+        </header>
+        <ol class="stages" id="stages"></ol>
+      </section>
+
+      <section class="wall-block" aria-labelledby="wall-lede">
+        <p class="wall-lede" id="wall-lede"></p>
+        <div class="wall" id="wall" aria-hidden="true"></div>
+      </section>
     </section>
 
-    <section class="band" aria-labelledby="cache-title">
-      <div class="band-head">
-        <h2 id="cache-title">Remembering results</h2>
-        <p>A name with the same settings is calculated once, then answered from a small cache.</p>
+    <section class="level" id="promises" aria-labelledby="promises-title">
+      <header class="level-head">
+        <h2 id="promises-title">Five promises</h2>
+        <p>Each one is a small idea, and each has a control, so you can try to break it.</p>
+      </header>
+
+      <section class="chapter" id="stable" aria-labelledby="stable-title">
+        <header class="chapter-head">
+          <h3 id="stable-title">The same name always gets the same colour.</h3>
+          <p>The colour is worked out from the text and nothing else. There is no table to keep, nothing to sync between services, and nothing that shifts when someone adds a name. Your API, your app and your emails agree without ever talking to each other. Change the list and compare.</p>
+          <pre class="ask" id="stable-code" aria-label="How to ask for it"></pre>
+        </header>
+        <div class="exhibit" id="stable-body"></div>
+      </section>
+
+      <section class="chapter" id="readable" aria-labelledby="readable-title">
+        <header class="chapter-head">
+          <h3 id="readable-title">Readable on the surface you actually use.</h3>
+          <p>Ask for a contrast ratio and every colour meets it, checked against each background you pass: the page, a panel, a hover state. The default is 7 to 1, which is WCAG AAA.</p>
+          <div class="control">
+            <label for="contrast-slider">Minimum contrast<output id="contrast-value" for="contrast-slider"></output></label>
+            <input type="range" id="contrast-slider" min="3" max="12" step="0.5" />
+            <div class="marks"><span>3</span><span>4.5 AA</span><span>7 AAA</span><span>12</span></div>
+          </div>
+          <pre class="ask" id="readable-code" aria-label="How to ask for it"></pre>
+        </header>
+        <div class="exhibit panels" id="readable-body"></div>
+      </section>
+
+      <section class="chapter" id="even" aria-labelledby="even-title">
+        <header class="chapter-head">
+          <h3 id="even-title">No name shouts and no name fades.</h3>
+          <p>Hues are not equally bright to the eye, so a plain hash to <code>hsl()</code> makes yellow glare and blue sink. huehash works in OKLCH, where lightness means what you see, and keeps every colour in one narrow band. These are the same 24 names both ways, measured on your surface.</p>
+          <pre class="ask" id="even-code" aria-label="How to ask for it"></pre>
+        </header>
+        <div class="exhibit compare" id="even-body"></div>
+      </section>
+
+      <section class="chapter" id="apart" aria-labelledby="apart-title">
+        <header class="chapter-head">
+          <h3 id="apart-title">Look-alike colours keep a safe distance.</h3>
+          <p>The colour wheel is finite, so colours cannot all be different. huehash keeps look-alikes a safe distance apart, in a line, in a grid or in a stack of grids. You choose how near counts as near, and how different counts as different.</p>
+          <div class="control">
+            <label for="steps-slider">How near counts as near<output id="steps-value" for="steps-slider"></output></label>
+            <input type="range" id="steps-slider" min="1" max="3" step="1" />
+            <div class="marks"><span>1</span><span>2</span><span>3 steps</span></div>
+          </div>
+          <div class="control">
+            <label for="distance-slider">How different counts as different<output id="distance-value" for="distance-slider"></output></label>
+            <input type="range" id="distance-slider" min="0" max="90" step="2" />
+            <div class="marks"><span>off</span><span>30</span><span>60</span><span>90</span></div>
+          </div>
+          <pre class="ask" id="apart-code" aria-label="How to ask for it"></pre>
+        </header>
+        <div class="exhibit neighbours" id="apart-body"></div>
+      </section>
+
+      <section class="chapter" id="reserved" aria-labelledby="reserved-title">
+        <header class="chapter-head">
+          <h3 id="reserved-title">Clear of the colours that already mean something.</h3>
+          <p>Red, amber and green carry meaning in your interface. Name them once and huehash keeps every colour a set distance away from them, so a service never looks like a warning.</p>
+          <div class="control">
+            <label for="width-slider">Width kept clear around each<output id="width-value" for="width-slider"></output></label>
+            <input type="range" id="width-slider" min="10" max="60" step="2" />
+            <div class="marks"><span>10°</span><span>30°</span><span>60°</span></div>
+          </div>
+          <pre class="ask" id="reserved-code" aria-label="How to ask for it"></pre>
+        </header>
+        <div class="exhibit" id="reserved-body"></div>
+      </section>
+    </section>
+
+    <section class="level" id="views" aria-labelledby="views-title">
+      <header class="level-head">
+        <h2 id="views-title">In real views</h2>
+        <p>The same colours at work in the interfaces that need one for every name. Each view is drawn from huehash's real output on the surface you picked.</p>
+      </header>
+      <div class="showcase" id="showcase"></div>
+    </section>
+
+    <section class="level" id="details" aria-labelledby="details-title">
+      <header class="level-head">
+        <h2 id="details-title">Under the hood</h2>
+        <p>What it costs, what it exposes, and how to start.</p>
+      </header>
+
+      <section class="chapter" aria-labelledby="facts-title">
+        <header class="chapter-head">
+          <h3 id="facts-title">Small, fast and stable.</h3>
+          <p>No dependencies, no build step, and no surprises between releases.</p>
+        </header>
+        <div class="exhibit facts" id="facts-body"></div>
+      </section>
+
+      <section class="chapter" aria-labelledby="api-title">
+        <header class="chapter-head">
+          <h3 id="api-title">The whole API.</h3>
+          <p>Three functions cover most uses. The rest are there when you need them.</p>
+        </header>
+        <div class="exhibit api">
+          <dl class="api-list">
+            <div><dt><code>colorFor(name, options?)</code></dt><dd>One colour, as a hex string.</dd></div>
+            <div><dt><code>colorsFor(names, options?)</code></dt><dd>A colour for each name, with neighbours kept apart.</dd></div>
+            <div><dt><code>describeColor(name, options?)</code></dt><dd>The colour with its OKLCH values, CSS value, contrast and grade.</dd></div>
+            <div><dt><code>createHuehash(defaults?, { cacheSize? })</code></dt><dd>Your own defaults and your own cache.</dd></div>
+            <div><dt><code>avoidHuesOf(hexes, width?)</code></dt><dd>Hue ranges to keep clear of.</dd></div>
+            <div><dt><code>toCssVariables(colors)</code></dt><dd>CSS custom properties, ready to paste.</dd></div>
+          </dl>
+          <dl class="api-list">
+            <div><dt><code>background</code></dt><dd>The surface or surfaces the colour sits on. Contrast is guaranteed against each.</dd></div>
+            <div><dt><code>minContrast</code></dt><dd>The WCAG ratio to guarantee. 7 by default.</dd></div>
+            <div><dt><code>avoid</code></dt><dd>Hue ranges to keep clear of.</dd></div>
+            <div><dt><code>mode</code></dt><dd>Force dark or light styling. By default it follows the background.</dd></div>
+            <div><dt><code>distance</code></dt><dd>The least gap between neighbours, in degrees. <code>colorsFor</code> only.</dd></div>
+            <div><dt><code>neighbours</code></dt><dd>How many items on each side count as neighbours. <code>colorsFor</code> only.</dd></div>
+          </dl>
+        </div>
+      </section>
+
+      <section class="chapter" id="install" aria-labelledby="install-title">
+        <header class="chapter-head">
+          <h3 id="install-title">Try it in a minute.</h3>
+          <p>One function to start, one more when order matters.</p>
+        </header>
+        <div class="exhibit code-blocks" id="code-blocks"></div>
+      </section>
+    </section>
+
+    <section class="closing" aria-labelledby="closing-title">
+      <h2 id="closing-title">Bring your own names.</h2>
+      <p>Paste your ids, labels or usernames into the playground, move the sliders, and see them in real views before you write a line.</p>
+      <div class="cta">
+        <a class="button" href="./try/" id="cta-try-2">Open the playground</a>
+        <a class="button ghost" href="https://github.com/huehash/huehash">Read the README</a>
       </div>
-      <div class="cache" id="cache"></div>
     </section>
   </main>
 
   <footer class="foot">
-    <span>MIT licensed. No dependencies, about 6 kB gzipped.</span>
+    <span>MIT licensed. Made to be copied.</span>
     <span id="foot-note"></span>
   </footer>
 
-  <script type="module" src="./src/main.ts"></script>
+  <script type="module" src="./src/landing/main.ts"></script>
 </body>
 </html>

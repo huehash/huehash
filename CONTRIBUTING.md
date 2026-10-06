@@ -12,7 +12,7 @@ npm run playground  # the playground, with live reload
 
 ## The colours are a contract
 
-`test/golden.test.ts` pins the exact colour for a set of names. People store, compare and screenshot these values, so **the same name must keep the same colour from one release to the next**.
+`test/golden.test.ts` pins the exact colour for a set of keys, and for a few sequences. People store, compare and screenshot these values, so **the same key must keep the same colour from one release to the next**.
 
 If a golden test fails, the algorithm changed. That is a breaking change: it needs a major version bump and a note in `CHANGELOG.md`. Do not simply update the expected values.
 

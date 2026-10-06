@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>huehash playground</title>
+  <meta name="description" content="Try your own keys, set the contrast and the distance between neighbours, and see the colours in real views." />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='%23e1ac67'/%3E%3C/svg%3E" />
+</head>
+<body class="app">
+  <header class="top">
+    <a class="mark" id="mark" href="../">huehash</a>
+    <nav aria-label="Main">
+      <a href="../" id="nav-home">Overview</a>
+      <a href="./" aria-current="page">Playground</a>
+      <a href="https://github.com/huehash/huehash">GitHub</a>
+    </nav>
+    <div class="top-right">
+      <div class="surfaces" role="group" aria-label="Surface colour" id="surfaces">
+        <span class="surface-presets" id="surface-presets"></span>
+        <label class="custom" title="Pick any colour"><span aria-hidden="true">+</span><input type="color" id="custom-surface" value="#0d1117" aria-label="Custom surface colour" /></label>
+      </div>
+      <button type="button" class="quiet" id="share">Copy link</button>
+    </div>
+  </header>
+
+  <div class="workbench">
+    <aside class="rail" aria-label="Options">
+      <section class="opt" aria-labelledby="o-keys">
+        <h2 id="o-keys">Keys</h2>
+        <p class="hint" id="keys-hint"></p>
+        <textarea id="keys" rows="8" spellcheck="false" aria-label="Keys, one per line"></textarea>
+        <div class="presets" id="presets" role="group" aria-label="Example keys"></div>
+      </section>
+
+      <section class="opt" aria-labelledby="o-one">
+        <h2 id="o-one">One key</h2>
+        <label class="sr-only" for="word">Try a single key</label>
+        <input id="word" class="one" type="text" spellcheck="false" autocomplete="off" autocapitalize="off" maxlength="40" />
+        <p class="readout" id="readout" aria-live="polite"></p>
+      </section>
+
+      <section class="opt" aria-labelledby="o-colour">
+        <h2 id="o-colour">Colour</h2>
+        <div class="control"><label for="contrast">Minimum contrast<span class="value" id="contrast-value"></span></label><input type="range" id="contrast" min="3" max="12" step="0.5" /><div class="marks"><span>3</span><span>4.5 AA</span><span>7 AAA</span><span>12</span></div></div>
+        <div class="control"><span class="label">Style</span><div class="segmented" id="mode" role="group" aria-label="Style"></div></div>
+      </section>
+
+      <section class="opt" aria-labelledby="o-near">
+        <h2 id="o-near">Safe distance</h2>
+        <p class="hint">Look-alike colours keep this far apart: how different they must be, and how near counts as near.</p>
+        <div class="control"><label for="distance">How different counts as different<span class="value" id="distance-value"></span></label><input type="range" id="distance" min="0" max="120" step="2" /><div class="marks"><span>0 off</span><span>30</span><span>60</span><span>120</span></div></div>
+        <div class="control"><label for="neighbours">How near counts as near<span class="value" id="neighbours-value"></span></label><input type="range" id="neighbours" min="1" max="6" step="1" /><div class="marks"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>all</span></div></div>
+        <p class="metric" id="metric" aria-live="polite"></p>
+        <p class="hint" id="layout-hint"><button type="button" class="quiet" data-scene="swatches">Try a grid or a stack in Swatches</button></p>
+      </section>
+
+      <section class="opt" id="layout-section" aria-labelledby="o-layout" hidden>
+        <h2 id="o-layout">Layout</h2>
+        <p class="hint">Where the items sit decides who their neighbours are. Hover a tile to see them.</p>
+        <div class="segmented" id="layout" role="group" aria-label="How the items are laid out"></div>
+        <div class="control" id="columns-control"><label for="columns">Items to a row<span class="value" id="columns-value"></span></label><input type="range" id="columns" min="2" max="16" step="1" /></div>
+        <div class="control" id="rows-control"><label for="rows">Rows to a layer<span class="value" id="rows-value"></span></label><input type="range" id="rows" min="1" max="8" step="1" /></div>
+      </section>
+
+      <section class="opt" aria-labelledby="o-avoid">
+        <h2 id="o-avoid">Reserved hues</h2>
+        <label class="toggle" for="avoid"><input type="checkbox" id="avoid" />Keep clear of status colours</label>
+        <p class="hint">Steers clear of amber, green, red, cyan and magenta, so a key never looks like a state.</p>
+        <div class="control"><label for="avoid-width">Width kept clear<span class="value" id="avoid-width-value"></span></label><input type="range" id="avoid-width" min="10" max="60" step="2" /></div>
+        <figure class="wheel" id="wheel"></figure>
+      </section>
+
+      <section class="opt" aria-labelledby="o-cache">
+        <h2 id="o-cache">Cache</h2>
+        <div class="cache" id="cache"></div>
+      </section>
+    </aside>
+
+    <section class="stage" aria-label="Preview">
+      <div class="stage-bar">
+        <div class="tabs" role="tablist" id="scenes" aria-label="View"></div>
+      </div>
+      <p class="caption" id="caption"></p>
+      <div class="frame" id="frame" role="tabpanel"></div>
+      <dl class="stats" id="stats"></dl>
+
+      <div class="drawer" id="drawer">
+        <div class="drawer-bar">
+          <button type="button" class="drawer-toggle" id="drawer-toggle" aria-expanded="false" aria-controls="drawer-body">Code</button>
+          <div class="tabs small" role="tablist" id="tabs" aria-label="Output format"></div>
+          <button type="button" class="quiet" id="copy">Copy</button>
+        </div>
+        <div class="drawer-body" id="drawer-body" hidden><pre id="code" tabindex="0"></pre></div>
+      </div>
+    </section>
+  </div>
+
+  <script type="module" src="../src/try/main.ts"></script>
+</body>
+</html>

@@ -1,3 +1,4 @@
+import { earlierNeighbours, type Grid } from './grid.js'
 import { hash32, mix, normalize, unit } from './hash.js'
 import { hueFrom, hueGap, type HueArc } from './hue.js'
 import { Lru } from './lru.js'
@@ -22,8 +23,8 @@ export type Options = {
 export type Grade = 'AAA' | 'AA' | 'AA large' | 'fail'
 
 export type ColorDescription = {
-  /** The name as it was hashed: lowercase, trimmed. */
-  readonly name: string
+  /** The key as it was hashed: lowercase, trimmed. */
+  readonly key: string
   readonly hex: string
   readonly rgb: Readonly<Rgb>
   readonly oklch: Readonly<Oklch>
@@ -51,15 +52,34 @@ export type HuehashOptions = {
   cacheSize?: number
 }
 
-export type SetOptions = Options & {
-  /** The smallest distance between any two hues, in OKLCH degrees. Default 24. */
-  minHueGap?: number
+export type SequenceOptions = Options & {
+  /**
+   * The least distance between neighbours on the colour wheel, in OKLCH degrees, 0 to 180. Default 30.
+   * 0 turns the check off, so every key just gets its own plain colour.
+   */
+  distance?: number
+  /**
+   * How many items on each side count as neighbours. Default 1, the item right before and after.
+   * With `columns`, it counts steps along rows, down columns and through layers instead.
+   * `Infinity` makes every item a neighbour of every other.
+   */
+  neighbours?: number
+  /**
+   * Lay the items out in rows of this many, the way a grid draws them, so the items above and below count as
+   * neighbours as well as the ones beside. By default the items sit in one line.
+   */
+  columns?: number
+  /**
+   * With `columns`, stack the rows into layers of this many rows, so the items in the layers in front and
+   * behind count as neighbours too: a grid in three dimensions. Needs `columns`.
+   */
+  rows?: number
 }
 
 export type Huehash = {
-  colorFor(name: string, options?: Options): string
-  describeColor(name: string, options?: Options): ColorDescription
-  distinctColors(names: string[], options?: SetOptions): Record<string, string>
+  colorFor(key: string, options?: Options): string
+  describeColor(key: string, options?: Options): ColorDescription
+  colorsFor(keys: string[], options?: SequenceOptions): string[]
   /** Forget every cached result and reset the counters. */
   clearCache(): void
   cacheStats(): CacheStats
@@ -131,7 +151,7 @@ function describe(key: string, settings: Resolved): ColorDescription {
   const oklch = hexToOklch(hex)
   const contrast = worstContrast(hex, settings.backgrounds)
   return Object.freeze({
-    name: key,
+    key,
     hex,
     rgb: Object.freeze(hexToRgb(hex)) as Readonly<Rgb>,
     oklch: Object.freeze(oklch),
@@ -142,18 +162,34 @@ function describe(key: string, settings: Resolved): ColorDescription {
   })
 }
 
-function distinct(keys: string[], minHueGap: number, settings: Resolved): Record<string, string> {
-  const taken: number[] = []
-  const byKey: Record<string, string> = {}
-  const clearance = (hue: number) => Math.min(360, ...taken.map(other => hueGap(hue, other)))
-  keys.forEach(key => {
+const NEUTRAL = ''
+
+const sizeOf = (value: number): number => (value === Infinity ? Infinity : Math.max(1, Math.floor(value)))
+
+/**
+ * Colours for keys in order, so that neighbours are at least `distance` degrees apart.
+ * Each key starts from its own hashed hue and only moves when it is too close to a neighbour that is
+ * already placed, first by a few steps, then to the free hue furthest from its neighbours. A repeated
+ * key keeps its first colour. Neighbours are the items right before it, or with `columns` and `rows` the
+ * items beside it, above it, below it and in the layers in front and behind. With finite `neighbours`
+ * the keys are placed in the order given, so adding keys to the end never changes the colours before
+ * them. With every item a neighbour of every other, the keys are placed alphabetically, so the order
+ * you pass them in does not matter.
+ */
+function sequence(keys: string[], distance: number, neighbours: number, grid: Grid, settings: Resolved): string[] {
+  const everyone = neighbours >= keys.length - 1
+  const placed = new Map<string, { hue: number; hex: string }>()
+  const hues: Array<number | undefined> = []
+
+  const place = (key: string, nearby: number[]) => {
     const bits = hash32(key)
     const preferred = unit(bits)
+    const clearance = (hue: number) => Math.min(360, ...nearby.map(other => hueGap(hue, other)))
     let position = preferred
-    for (let attempt = 0; attempt < 8 && clearance(hueFrom(position, settings.avoid)) < minHueGap; attempt += 1) {
+    for (let attempt = 0; attempt < 8 && clearance(hueFrom(position, settings.avoid)) < distance; attempt += 1) {
       position = (position + GOLDEN) % 1
     }
-    if (clearance(hueFrom(position, settings.avoid)) < minHueGap) {
+    if (clearance(hueFrom(position, settings.avoid)) < distance) {
       let bestClearance = -1
       for (let i = 0; i < 720; i += 1) {
         const candidate = (preferred + i / 720) % 1
@@ -164,10 +200,26 @@ function distinct(keys: string[], minHueGap: number, settings: Resolved): Record
         }
       }
     }
-    taken.push(hueFrom(position, settings.avoid))
-    byKey[key] = shade(position, bits, 1, settings)
-  })
-  return byKey
+    placed.set(key, { hue: hueFrom(position, settings.avoid), hex: shade(position, bits, 1, settings) })
+  }
+
+  if (everyone) {
+    const unique = [...new Set(keys)].filter(key => key !== NEUTRAL).sort()
+    unique.forEach(key => place(key, unique.slice(0, unique.indexOf(key)).map(earlier => placed.get(earlier)!.hue)))
+  } else {
+    keys.forEach((key, index) => {
+      if (key !== NEUTRAL && !placed.has(key)) {
+        const nearby = earlierNeighbours(index, grid, neighbours).flatMap(other => {
+          const hue = hues[other]
+          return hue === undefined ? [] : [hue]
+        })
+        place(key, nearby)
+      }
+      hues.push(placed.get(key)?.hue)
+    })
+  }
+  const neutral = colorFromKey(NEUTRAL, settings)
+  return keys.map(key => placed.get(key)?.hex ?? neutral)
 }
 
 /**
@@ -175,14 +227,14 @@ function distinct(keys: string[], minHueGap: number, settings: Resolved): Record
  *
  * Results depend only on the name and the options, so they are cached: the same name with the same
  * options is calculated once, whatever the case or surrounding spaces. The cache holds at most
- * `cacheSize` results per kind and drops the least recently used first. Names longer than 256
+ * `cacheSize` results per kind and drops the least recently used first. Keys longer than 256
  * characters are calculated each time rather than cached.
  */
 export function createHuehash(defaults: Options = {}, { cacheSize = 2000 }: HuehashOptions = {}): Huehash {
   const size = Math.max(0, Math.floor(cacheSize))
   const colors = new Lru<string>(size)
   const descriptions = new Lru<ColorDescription>(size)
-  const sets = new Lru<Record<string, string>>(size === 0 ? 0 : Math.max(1, Math.floor(size / 20)))
+  const sequences = new Lru<string[]>(size === 0 ? 0 : Math.max(1, Math.floor(size / 20)))
   const settingsBySignature = new Map<string, Resolved>()
 
   const fixedDefaults: Options = Object.freeze({
@@ -207,57 +259,64 @@ export function createHuehash(defaults: Options = {}, { cacheSize = 2000 }: Hueh
   }
 
   return {
-    colorFor(name, options) {
+    colorFor(key, options) {
       const { signature, settings } = settingsFor(options)
-      const key = normalize(name)
-      if (key.length > MAX_CACHED_NAME) return colorFromKey(key, settings)
-      const cacheKey = `${signature}\u0000${key}`
+      const normalized = normalize(key)
+      if (normalized.length > MAX_CACHED_NAME) return colorFromKey(normalized, settings)
+      const cacheKey = `${signature}\u0000${normalized}`
       const cached = colors.get(cacheKey)
       if (cached !== undefined) return cached
-      const hex = colorFromKey(key, settings)
+      const hex = colorFromKey(normalized, settings)
       colors.set(cacheKey, hex)
       return hex
     },
 
-    describeColor(name, options) {
+    describeColor(key, options) {
       const { signature, settings } = settingsFor(options)
-      const key = normalize(name)
-      if (key.length > MAX_CACHED_NAME) return describe(key, settings)
-      const cacheKey = `${signature}\u0000${key}`
+      const normalized = normalize(key)
+      if (normalized.length > MAX_CACHED_NAME) return describe(normalized, settings)
+      const cacheKey = `${signature}\u0000${normalized}`
       const cached = descriptions.get(cacheKey)
       if (cached) return cached
-      const description = describe(key, settings)
+      const description = describe(normalized, settings)
       descriptions.set(cacheKey, description)
       return description
     },
 
-    distinctColors(names, options) {
-      const { minHueGap = 24, ...colorOptions } = options ?? {}
+    colorsFor(keys, options) {
+      const { distance: rawDistance = 30, neighbours: rawNeighbours = 1, columns: rawColumns = Infinity, rows: rawRows = Infinity, ...colorOptions } = options ?? {}
+      if (!Number.isFinite(rawDistance)) throw new TypeError('`distance` must be a number')
+      if (Number.isNaN(rawNeighbours)) throw new TypeError('`neighbours` must be a number')
+      if (Number.isNaN(rawColumns)) throw new TypeError('`columns` must be a number')
+      if (Number.isNaN(rawRows)) throw new TypeError('`rows` must be a number')
+      const distance = Math.min(180, Math.max(0, rawDistance))
+      const neighbours = rawNeighbours === Infinity ? Infinity : Math.max(1, Math.floor(rawNeighbours))
+      const grid: Grid = { columns: sizeOf(rawColumns), rows: sizeOf(rawRows) }
+      if (grid.columns === Infinity && grid.rows !== Infinity) throw new TypeError('`rows` needs `columns`: say how many items make a row')
       const { signature, settings } = settingsFor(options ? colorOptions : undefined)
-      const keys = [...new Set(names.map(normalize))].filter(Boolean).sort()
-      const setKey = `${signature}\u0001${minHueGap}\u0001${keys.join('\u0000')}`
-      let byKey = setKey.length <= MAX_CACHED_SET_KEY ? sets.get(setKey) : undefined
-      if (!byKey) {
-        byKey = distinct(keys, minHueGap, settings)
-        if (setKey.length <= MAX_CACHED_SET_KEY) sets.set(setKey, byKey)
-      }
-      const neutral = colorFromKey('', settings)
-      return Object.fromEntries(names.map(name => [name, byKey[normalize(name)] ?? neutral]))
+      const normalized = keys.map(normalize)
+      const sequenceKey = `${signature}\u0001${distance}\u0001${neighbours}\u0001${grid.columns}\u0001${grid.rows}\u0001${normalized.join('\u0000')}`
+      const cacheable = sequenceKey.length <= MAX_CACHED_SET_KEY
+      const cached = cacheable ? sequences.get(sequenceKey) : undefined
+      if (cached) return [...cached]
+      const colors = sequence(normalized, distance, neighbours, grid, settings)
+      if (cacheable) sequences.set(sequenceKey, colors)
+      return [...colors]
     },
 
     clearCache() {
       colors.clear()
       descriptions.clear()
-      sets.clear()
+      sequences.clear()
       settingsBySignature.clear()
     },
 
     cacheStats() {
       return {
-        hits: colors.hits + descriptions.hits + sets.hits,
-        misses: colors.misses + descriptions.misses + sets.misses,
-        size: colors.size + descriptions.size + sets.size,
-        maxSize: colors.max + descriptions.max + sets.max,
+        hits: colors.hits + descriptions.hits + sequences.hits,
+        misses: colors.misses + descriptions.misses + sequences.misses,
+        size: colors.size + descriptions.size + sequences.size,
+        maxSize: colors.max + descriptions.max + sequences.max,
       }
     },
   }

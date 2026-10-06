@@ -4,7 +4,7 @@ import { colorFor, describeColor, gradeFor, toCssVariables } from '../src/index.
 
 test('describes a colour with its measurements', () => {
   const d = describeColor('  ORBIT2DB ')
-  assert.equal(d.name, 'orbit2db')
+  assert.equal(d.key, 'orbit2db')
   assert.equal(d.hex, colorFor('orbit2db'))
   assert.equal(d.rgb.length, 3)
   assert.match(d.css, /^oklch\(\d+\.\d% 0\.\d{3} \d+\.\d\)$/)

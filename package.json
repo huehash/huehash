@@ -1,7 +1,7 @@
 {
   "name": "huehash",
   "version": "0.1.0",
-  "description": "A stable, readable colour for any name. Hash a string to a hex that fits your dark (or light) UI, with guaranteed contrast.",
+  "description": "A stable, readable colour for any string, with guaranteed contrast on dark or light UIs. Look-alike colours keep a safe distance apart in a list, a grid or a stack.",
   "keywords": [
     "color",
     "colour",

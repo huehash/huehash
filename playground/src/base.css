@@ -1,0 +1,64 @@
+/* Tokens. The page is the surface: switching it repaints everything, and every generated colour is recomputed for it. */
+:root {
+  --surface: #0d1117;
+  --ink: #ece9e4;
+  --muted: #a7a5a1;
+  --faint: #6f6e6c;
+  --rule: #2a2f36;
+  --field: #14181e;
+  --serif: 'Instrument Serif', 'Iowan Old Style', Georgia, serif;
+  --mono: 'Martian Mono Variable', ui-monospace, 'SF Mono', Menlo, monospace;
+  --gutter: clamp(20px, 5vw, 80px);
+  color-scheme: dark;
+}
+:root[data-light] { color-scheme: light; }
+
+* { box-sizing: border-box; }
+html { background: var(--surface); transition: background-color 0.25s ease; scroll-behavior: smooth; }
+body { margin: 0; min-height: 100vh; background: var(--surface); color: var(--ink); font: 400 19px/1.5 var(--serif); -webkit-font-smoothing: antialiased; transition: background-color 0.25s ease, color 0.25s ease; }
+a { color: inherit; text-underline-offset: 4px; }
+h1, h2, h3 { margin: 0; font-weight: 400; }
+p { margin: 0; }
+button, input, textarea, select { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; border-radius: 3px; }
+[tabindex='-1']:focus-visible { outline: none; }
+[hidden] { display: none !important; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+code, pre, .mono { font-family: var(--mono); font-size: 0.78em; }
+.muted { color: var(--muted); }
+.faint { color: var(--faint); }
+
+/* Top bar */
+.top { display: flex; align-items: center; gap: 20px 28px; padding: 18px var(--gutter); flex-wrap: wrap; }
+.mark { font: italic 400 30px/1 var(--serif); text-decoration: none; letter-spacing: 0.01em; transition: color 0.25s ease; }
+.top nav { display: flex; gap: 24px; align-items: center; font-size: 18px; }
+.top nav a { color: var(--muted); text-decoration: none; }
+.top nav a:hover, .top nav a[aria-current='page'] { color: var(--ink); }
+.top-right { margin-left: auto; display: flex; align-items: center; gap: 24px; flex-wrap: wrap; }
+.surfaces { display: flex; gap: 10px; align-items: center; }
+.surface-presets { display: contents; }
+.swatch { width: 22px; height: 22px; border-radius: 50%; border: 1px solid var(--faint); cursor: pointer; padding: 0; }
+.swatch[aria-pressed='true'] { outline: 2px solid var(--ink); outline-offset: 3px; }
+.custom { position: relative; width: 22px; height: 22px; }
+.custom input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+.custom span { display: block; width: 22px; height: 22px; border-radius: 50%; border: 1px dashed var(--muted); font: 400 13px/20px var(--mono); text-align: center; color: var(--muted); }
+
+/* Buttons and links */
+.button { display: inline-flex; align-items: center; gap: 10px; padding: 12px 22px; border-radius: 4px; border: 1px solid var(--ink); background: var(--ink); color: var(--surface); text-decoration: none; cursor: pointer; font: 400 19px/1 var(--serif); transition: opacity 0.15s ease; }
+.button:hover { opacity: 0.88; }
+.button.ghost { background: transparent; color: var(--ink); border-color: var(--faint); }
+.button.ghost:hover { border-color: var(--ink); opacity: 1; }
+.quiet { background: none; border: 0; padding: 4px 2px; color: var(--muted); cursor: pointer; text-decoration: underline; text-underline-offset: 4px; text-decoration-color: var(--faint); font-size: inherit; }
+.quiet:hover { color: var(--ink); }
+.install { display: inline-block; padding: 10px 14px; border: 1px solid var(--rule); border-radius: 4px; color: var(--muted); font: 400 12.5px/1 var(--mono); }
+
+/* Code */
+pre { margin: 0; padding: 18px 20px; overflow: auto; background: var(--field); border: 1px solid var(--rule); border-radius: 4px; font-size: 12.5px; line-height: 1.75; tab-size: 2; }
+.copy { position: absolute; top: 12px; right: 14px; font-size: 16px; }
+
+.foot { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding: 28px var(--gutter) 40px; border-top: 1px solid var(--rule); color: var(--muted); font: 400 12px/1.5 var(--mono); }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}

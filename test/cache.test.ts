@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { avoidHuesOf, cacheStats, clearCache, colorFor, createHuehash, describeColor, distinctColors, type Options } from '../src/index.js'
+import { avoidHuesOf, cacheStats, clearCache, colorFor, createHuehash, describeColor, colorsFor, type Options } from '../src/index.js'
 
 const COMBOS: Options[] = [
   {},
@@ -23,8 +23,8 @@ test('a cached answer is always the answer the calculation would give', () => {
   }
   const names = Array.from({ length: 12 }, (_, i) => `group/project-${i}`)
   COMBOS.forEach(options => {
-    assert.deepEqual(cached.distinctColors(names, options), uncached.distinctColors(names, options))
-    assert.deepEqual(cached.distinctColors(names, options), uncached.distinctColors(names, options))
+    assert.deepEqual(cached.colorsFor(names, options), uncached.colorsFor(names, options))
+    assert.deepEqual(cached.colorsFor(names, options), uncached.colorsFor(names, options))
   })
 })
 
@@ -90,22 +90,37 @@ test('describeColor results are frozen so nobody can corrupt the cache', () => {
   assert.equal(h.describeColor('orbit2db').hex, h.colorFor('orbit2db'))
 })
 
-test('distinctColors reuses a set regardless of order, and hands out a fresh object each time', () => {
+test('colorsFor remembers a whole sequence and hands out a fresh array each time', () => {
   const h = createHuehash()
-  const names = ['orbit', 'orbits', 'orbit2db', 'nextjs']
-  const first = h.distinctColors(names)
+  const keys = ['orbit', 'orbits', 'orbit2db', 'nextjs']
+  const first = h.colorsFor(keys)
   const hitsBefore = h.cacheStats().hits
-  const second = h.distinctColors([...names].reverse())
+  const second = h.colorsFor(keys)
   assert.equal(h.cacheStats().hits, hitsBefore + 1)
   assert.deepEqual(first, second)
   assert.notEqual(first, second)
-  second['orbit'] = '#000000'
-  assert.notEqual(h.distinctColors(names)['orbit'], '#000000')
+  second[0] = '#000000'
+  assert.notEqual(h.colorsFor(keys)[0], '#000000')
+  const missesBefore = h.cacheStats().misses
+  h.colorsFor([...keys].reverse())
+  assert.equal(h.cacheStats().misses, missesBefore + 1, 'a different order is a different sequence')
+})
+
+test('distance and neighbours are part of what is remembered', () => {
+  const h = createHuehash()
+  const uncached = createHuehash({}, { cacheSize: 0 })
+  const keys = Array.from({ length: 60 }, (_, i) => `item-${i + 1}`)
+  const variants = [{ distance: 0 }, { distance: 30 }, { distance: 90 }, { distance: 40, neighbours: 3 }, { distance: 40, neighbours: Infinity }]
+  variants.forEach(options => {
+    assert.deepEqual(h.colorsFor(keys, options), uncached.colorsFor(keys, options))
+    assert.deepEqual(h.colorsFor(keys, options), uncached.colorsFor(keys, options))
+  })
+  assert.notDeepEqual(h.colorsFor(keys, { distance: 0 }), h.colorsFor(keys, { distance: 90 }))
 })
 
 test('clearCache forgets everything and the colours stay the same', () => {
   const before = colorFor('orbit')
-  distinctColors(['a', 'b'])
+  colorsFor(['a', 'b'])
   describeColor('orbit')
   assert.ok(cacheStats().size > 0)
   clearCache()
