@@ -4,7 +4,7 @@ Thanks for helping. The library is small and has no runtime dependencies; please
 
 ```bash
 npm install
-npm test            # unit tests and the playground tests
+npm test            # unit tests, and the playground tests on Node 22 or newer
 npm run typecheck
 npm run build       # the published library, into dist/
 npm run playground  # the playground, with live reload
