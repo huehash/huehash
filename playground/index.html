@@ -3,10 +3,10 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>huehash: a colour for every name</title>
-  <meta name="description" content="Give huehash any text and it returns a colour: the same one every time, readable on your dark or light interface, and easy to tell apart from its neighbours." />
-  <meta property="og:title" content="huehash: a colour for every name" />
-  <meta property="og:description" content="Stable, readable colours for any text, with guaranteed contrast and neighbours you can tell apart." />
+  <title>huehash: colours that read on any background</title>
+  <meta name="description" content="Give huehash a name and a background and it returns a colour with the contrast you ask for. The same name always gets the same colour, and look-alikes are kept apart." />
+  <meta property="og:title" content="huehash: colours that read on any background" />
+  <meta property="og:description" content="Colours for any text with guaranteed contrast on every background you use, the same colour every time, and neighbours you can tell apart." />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='%23e1ac67'/%3E%3C/svg%3E" />
 </head>
 <body class="landing">
@@ -24,8 +24,8 @@
         <label class="custom" title="Pick any colour"><span aria-hidden="true">+</span><input type="color" id="custom-surface" value="#0d1117" aria-label="Custom surface colour" /></label>
       </div>
       <nav class="links" aria-label="Elsewhere">
-        <a href="./try/" id="nav-try">Playground</a>
-        <a href="https://github.com/huehash/huehash">GitHub</a>
+        <a href="./try/" id="nav-try"><svg class="icon" viewBox="0 0 16 16" width="18" height="18" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" d="M2 4h5M11 4h3M2 8h2M8 8h6M2 12h7M13 12h1"/><circle cx="9" cy="4" r="1.8" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="6" cy="8" r="1.8" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="11" cy="12" r="1.8" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>Playground</a>
+        <a href="https://github.com/huehash/huehash"><svg class="icon" viewBox="0 0 16 16" width="18" height="18" aria-hidden="true" focusable="false"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.6 7.6 0 0 1 4 0c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>GitHub</a>
       </nav>
     </div>
   </header>
@@ -36,12 +36,13 @@
 
       <div class="hero">
         <h1 id="headline">A colour for every name.</h1>
-        <p class="hero-lede">Give huehash any text and it gives back a colour. The same text always gets the same colour, and the colour always reads on your background.</p>
+        <p class="hero-lede">Tell huehash the background and the contrast you need, and every name gets a colour that meets it, on dark, light or all of them at once. The same name always gets the same colour, and look-alikes are kept apart.</p>
         <div class="hero-grid">
           <div class="try">
             <label class="sr-only" for="try">Type any text</label>
             <input id="try" class="try-input" type="text" spellcheck="false" autocomplete="off" autocapitalize="off" maxlength="32" placeholder="orbit" />
             <p class="try-code mono" id="try-code" aria-live="polite"></p>
+            <ul class="try-surfaces" id="try-surfaces" aria-label="The same name on each surface"></ul>
             <div class="try-examples" id="try-examples"></div>
             <div class="cta">
               <a class="button" href="./try/" id="cta-try">Open the playground</a>
@@ -73,22 +74,13 @@
     <section class="level" id="promises" aria-labelledby="promises-title">
       <header class="level-head">
         <h2 id="promises-title">Five promises</h2>
-        <p>Each one is a small idea, and each has a control, so you can try to break it.</p>
+        <p>Contrast comes first, because a colour nobody can read is no use. The rest keep it the same, tell it apart, balance it and keep it clear. Each has a control, so you can try to break it.</p>
       </header>
-
-      <section class="chapter" id="stable" aria-labelledby="stable-title">
-        <header class="chapter-head">
-          <h3 id="stable-title">The same name always gets the same colour.</h3>
-          <p>The colour is worked out from the text and nothing else. There is no table to keep, nothing to sync between services, and nothing that shifts when someone adds a name. Your API, your app and your emails agree without ever talking to each other. Change the list and compare.</p>
-          <pre class="ask" id="stable-code" aria-label="How to ask for it"></pre>
-        </header>
-        <div class="exhibit" id="stable-body"></div>
-      </section>
 
       <section class="chapter" id="readable" aria-labelledby="readable-title">
         <header class="chapter-head">
-          <h3 id="readable-title">Readable on the surface you actually use.</h3>
-          <p>Ask for a contrast ratio and every colour meets it, checked against each background you pass: the page, a panel, a hover state. The default is 7 to 1, which is WCAG AAA.</p>
+          <h3 id="readable-title">Readable on every background you use.</h3>
+          <p>The same name has to read on a dark page, a light one, a tinted panel and a hover state. Tell huehash which backgrounds and what contrast, and every colour meets it on all of them, lightened or darkened as each surface needs. The default is 7 to 1, which is WCAG AAA.</p>
           <div class="control">
             <label for="contrast-slider">Minimum contrast<output id="contrast-value" for="contrast-slider"></output></label>
             <input type="range" id="contrast-slider" min="3" max="12" step="0.5" />
@@ -99,13 +91,13 @@
         <div class="exhibit panels" id="readable-body"></div>
       </section>
 
-      <section class="chapter" id="even" aria-labelledby="even-title">
+      <section class="chapter" id="stable" aria-labelledby="stable-title">
         <header class="chapter-head">
-          <h3 id="even-title">No name shouts and no name fades.</h3>
-          <p>Hues are not equally bright to the eye, so a plain hash to <code>hsl()</code> makes yellow glare and blue sink. huehash works in OKLCH, where lightness means what you see, and keeps every colour in one narrow band. These are the same 24 names both ways, measured on your surface.</p>
-          <pre class="ask" id="even-code" aria-label="How to ask for it"></pre>
+          <h3 id="stable-title">The same name always gets the same colour.</h3>
+          <p>Once the backgrounds are set, the colour is worked out from the text and nothing else. There is no table to keep, nothing to sync between services, and nothing that shifts when someone adds a name. Your API, your app and your emails agree without ever talking to each other. Change the list and compare.</p>
+          <pre class="ask" id="stable-code" aria-label="How to ask for it"></pre>
         </header>
-        <div class="exhibit compare" id="even-body"></div>
+        <div class="exhibit" id="stable-body"></div>
       </section>
 
       <section class="chapter" id="apart" aria-labelledby="apart-title">
@@ -125,6 +117,15 @@
           <pre class="ask" id="apart-code" aria-label="How to ask for it"></pre>
         </header>
         <div class="exhibit neighbours" id="apart-body"></div>
+      </section>
+
+      <section class="chapter" id="even" aria-labelledby="even-title">
+        <header class="chapter-head">
+          <h3 id="even-title">No name shouts and no name fades.</h3>
+          <p>Hues are not equally bright to the eye, so a plain hash to <code>hsl()</code> makes yellow glare and blue sink. huehash works in OKLCH, where lightness means what you see, and keeps every colour in one narrow band. These are the same 24 names both ways, measured on your surface.</p>
+          <pre class="ask" id="even-code" aria-label="How to ask for it"></pre>
+        </header>
+        <div class="exhibit compare" id="even-body"></div>
       </section>
 
       <section class="chapter" id="reserved" aria-labelledby="reserved-title">

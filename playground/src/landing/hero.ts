@@ -4,14 +4,14 @@ import { renderLogo } from '../shared/logo.js'
 import { $, esc } from '../shared/util.js'
 import { engine, jsString, options, state } from './ctx.js'
 
-const HEADLINE = ['A', 'colour', 'for', 'every', 'name.']
+const HEADLINE = ['Colours', 'that', 'read', 'on', 'any', 'background.']
 const EXAMPLES = ['api', 'ada', 'billing', 'bug', 'docs']
 
 export const PROMISES = [
+  { id: 'readable', name: 'Readable', gloss: 'Every colour meets the contrast you ask for, on every background you pass.' },
   { id: 'stable', name: 'Stable', gloss: 'The same name gets the same colour, wherever it shows up.' },
-  { id: 'readable', name: 'Readable', gloss: 'Every colour reads on the surface you choose.' },
-  { id: 'even', name: 'Even', gloss: 'No name is brighter than another.' },
   { id: 'apart', name: 'Apart', gloss: 'Look-alike colours keep a safe distance.' },
+  { id: 'even', name: 'Even', gloss: 'No name is brighter than another.' },
   { id: 'reserved', name: 'Reserved', gloss: 'Nothing looks like a warning unless it is one.' },
 ]
 
@@ -48,6 +48,14 @@ export function renderHero() {
   $('#try-code').innerHTML = state.word.trim()
     ? `<span class="call">colorFor(${esc(jsString(state.word))})</span><span class="out"><i class="dot" style="background:${described.hex}"></i>${esc(jsString(described.hex))}<span class="fine">${described.contrast.toFixed(1)}:1 contrast on ${esc(state.surface)}, ${esc(described.grade)}</span></span>`
     : '<span class="call">Type any text above.</span>'
+
+  $('#try-surfaces').innerHTML = state.word.trim()
+    ? SURFACES.map(surface => {
+        const there = engine.describeColor(state.word, { ...options(), background: surface.hex })
+        const ink = inkFor(surface.hex)
+        return `<li style="background:${surface.hex};color:${ink.muted}"><b style="color:${there.hex}">${esc(state.word)}</b><span>${there.contrast.toFixed(1)}:1 on ${surface.name}</span></li>`
+      }).join('')
+    : ''
 
   $('#try-examples').innerHTML = `<span class="fine">Try</span>${EXAMPLES.map(word => `<button type="button" class="chip" data-action="word" data-word="${word}" style="color:${engine.colorFor(word, options())}">${word}</button>`).join('')}`
 

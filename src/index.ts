@@ -10,7 +10,7 @@ export type { Oklch, Rgb } from './oklch.js'
 /** The shared instance behind the top-level functions, with the default options and a default-size cache. */
 const shared = createHuehash()
 
-/** A stable `#rrggbb` for a key: any string, such as an id, a label or a username. The same key always gives the same colour, whatever the case or surrounding spaces. */
+/** A `#rrggbb` for a key (an id, a label, a username) that meets `minContrast` on every `background` you pass. The same key and options always give the same colour, whatever the case or surrounding spaces. */
 export const colorFor = (key: string, options?: Options): string => shared.colorFor(key, options)
 
 /** The colour for a name together with how it was measured: OKLCH, CSS, contrast and its WCAG grade. */

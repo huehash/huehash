@@ -209,3 +209,9 @@ main { padding: 0 var(--gutter); }
 #promises { counter-reset: promise; }
 #promises .chapter { counter-increment: promise; }
 #promises .chapter h3::before { content: counter(promise) '.'; margin-right: 0.28em; font-style: italic; color: var(--promise, var(--faint)); transition: color 0.25s ease; }
+
+/* The same name on each surface: the contrast promise, shown before anyone scrolls */
+.try-surfaces { list-style: none; margin: 18px 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); border: 1px solid var(--rule); border-radius: 6px; overflow: hidden; }
+.try-surfaces li { display: flex; flex-direction: column; gap: 4px; padding: 12px 14px; min-width: 0; }
+.try-surfaces b { font: italic 400 26px/1.15 var(--serif); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.try-surfaces span { font: 400 11px/1.4 var(--mono); }

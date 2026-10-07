@@ -91,9 +91,9 @@ const texts = (dom: JSDOM, selector: string) => all(dom, selector).map(el => el.
 
 test('landing: the headline is real output, one colour per word, and all of it reads', () => {
   const dom = open('landing')
-  assert.equal(q(dom, '#headline').textContent, 'A colour for every name.')
+  assert.equal(q(dom, '#headline').textContent, 'Colours that read on any background.')
   const words = all(dom, '#headline span')
-  assert.equal(words.length, 5)
+  assert.equal(words.length, 6)
   words.forEach(word => {
     const key = word.textContent!.replace('.', '')
     assert.equal(rgb(word.style.color), colorFor(key, { background: '#0d1117' }), key)
@@ -109,6 +109,11 @@ test('landing: the hero input shows the call, the colour and its contrast for wh
   const hex = colorFor('nebula', { background: '#0d1117' })
   assert.equal(rgb(q(dom, '#try').style.color), hex)
   assert.match(q(dom, '#try-code').textContent ?? '', new RegExp(`'${hex}'\\d+\\.\\d:1 contrast on #0d1117, AAA`))
+  all(dom, '#try-surfaces li').forEach((li, i) => {
+    const surface = ['#0d1117', '#0f3552', '#3b1a3f', '#ffffff'][i]!
+    assert.equal(rgb(li.querySelector('b')!.style.color), colorFor('nebula', { background: surface }), surface)
+  })
+  assert.equal(all(dom, '#try-surfaces li').length, 4)
   type(dom, '#try', "it's")
   assert.match(q(dom, '#try-code').textContent ?? '', /colorFor\('it\\'s'\)/)
   type(dom, '#try', '')
@@ -128,7 +133,7 @@ test('landing: the example names fill the input, in their own colours', () => {
 test('landing: the five promises are links to chapters that exist, in their own colours', () => {
   const dom = open('landing')
   const links = all(dom, '#promise-index a')
-  assert.deepEqual(links.map(a => a.getAttribute('href')), ['#stable', '#readable', '#even', '#apart', '#reserved'])
+  assert.deepEqual(links.map(a => a.getAttribute('href')), ['#readable', '#stable', '#apart', '#even', '#reserved'])
   links.forEach(link => {
     const id = link.getAttribute('href')!.slice(1)
     assert.ok(dom.window.document.getElementById(id), `chapter ${id} exists`)
@@ -144,7 +149,7 @@ test('landing: the page is ordered from the idea to the details, and the top bar
   const order = [...dom.window.document.querySelectorAll('main > section')].map(section => section.id)
   assert.deepEqual(order.slice(0, 4), ['idea', 'promises', 'views', 'details'])
   const chapters = all(dom, '#promises .chapter').map(chapter => chapter.id)
-  assert.deepEqual(chapters, ['stable', 'readable', 'even', 'apart', 'reserved'])
+  assert.deepEqual(chapters, ['readable', 'stable', 'apart', 'even', 'reserved'])
 })
 
 test('landing: the step by step shows the real hash, hue and colours for the name', () => {

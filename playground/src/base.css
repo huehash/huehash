@@ -35,6 +35,8 @@ code, pre, .mono { font-family: var(--mono); font-size: 0.78em; }
 .top nav { display: flex; gap: 24px; align-items: center; font-size: 18px; }
 .top nav a { color: var(--muted); text-decoration: none; }
 .top nav a:hover, .top nav a[aria-current='page'] { color: var(--ink); }
+.top nav a:has(.icon) { display: inline-flex; align-items: center; gap: 8px; }
+.icon { flex: none; }
 .top-right { margin-left: auto; display: flex; align-items: center; gap: 24px; flex-wrap: wrap; }
 .surfaces { display: flex; gap: 10px; align-items: center; }
 .surface-presets { display: contents; }

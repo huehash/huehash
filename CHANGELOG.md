@@ -7,7 +7,7 @@ A change to the colour a key produces counts as a breaking change.
 
 First release.
 
-- `colorFor`, `describeColor` and `colorsFor` turn any string into a colour that holds its contrast on the backgrounds you give.
+- `colorFor`, `describeColor` and `colorsFor` turn any string into a colour that meets the contrast you ask for on every background you give, and is the same colour every time.
 - `colorsFor` keeps look-alike colours at a safe distance, in a line, a grid or a stack of grids. `distance` is the least gap on the colour wheel, `neighbours` is how many steps away still counts as near, and `columns` and `rows` say how the items are laid out.
 - Dark and light surfaces, several backgrounds at once, and hue ranges to keep free.
 - A bounded LRU cache, with `createHuehash` for instances that have their own defaults and cache.
