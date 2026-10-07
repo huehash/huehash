@@ -1,4 +1,4 @@
-import { colorFor, colorsFor, createHuehash } from '../../../src/index.js'
+import { colorFor, colorsFor, createHuehash, readable } from '../../../src/index.js'
 import { highlight } from '../shared/code.js'
 import { $, esc } from '../shared/util.js'
 import { state } from './ctx.js'
@@ -16,12 +16,14 @@ export function renderFacts() {
 }
 
 export function renderCode() {
+  const brand = '#c2410c'
+  const dark = readable(brand, { background: '#0d1117' })
+  const white = readable(brand, { background: '#ffffff' })
+  const panels = readable(brand, { background: ['#0b0e14', '#171c26'] })
   const orbit = colorFor('orbit')
-  const orbits = colorFor('orbits')
-  const onWhite = colorFor('orbit', { background: '#ffffff' })
   const spread = colorsFor(['item-1', 'item-2', 'item-3', 'item-4', 'item-5', 'item-6'], { distance: 40 })
-  const one = `import { colorFor } from 'huehash'\n\ncolorFor('orbit')                              // '${orbit}'  reads on the default dark surface\ncolorFor('orbit', { background: '#ffffff' })   // '${onWhite}'  darkened to read on white\ncolorFor('orbits')                             // '${orbits}'  a similar name, a clearly different colour`
-  const two = `import { colorsFor } from 'huehash'\n\nconst names = ['item-1', 'item-2', 'item-3', 'item-4', 'item-5', 'item-6']\nconst colors = colorsFor(names, { distance: 40 })\n\n// colors[i] belongs to names[i]; neighbours are at least 40° apart\n// [${spread.map(hex => `'${hex}'`).join(', ')}]`
+  const one = `import { readable } from 'huehash'\n\nreadable('${brand}', { background: '#0d1117' })   // '${dark}'  lifted to read on a dark page\nreadable('${brand}', { background: '#ffffff' })   // '${white}'  darkened to read on white\nreadable('${brand}', { background: ['#0b0e14', '#171c26'] })   // '${panels}'  one colour for both dark panels`
+  const two = `import { colorFor, colorsFor } from 'huehash'\n\ncolorFor('orbit')   // '${orbit}'  a colour for a name, readable on the default dark surface\n\nconst names = ['item-1', 'item-2', 'item-3', 'item-4', 'item-5', 'item-6']\nconst colors = colorsFor(names, { distance: 40 })\n\n// colors[i] belongs to names[i]; neighbours are at least 40° apart\n// [${spread.map(hex => `'${hex}'`).join(', ')}]`
   codes = [one, two]
   $('#code-blocks').innerHTML = codes.map((code, i) => `<div class="code-wrap"><button type="button" class="quiet copy" data-action="copy" data-code="${i}">Copy</button><pre tabindex="0">${highlight(code, state.surface)}</pre></div>`).join('')
 }

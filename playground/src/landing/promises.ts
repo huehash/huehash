@@ -54,7 +54,9 @@ export function renderStable() {
 export function renderReadable() {
   syncSlider('#contrast-slider', state.minContrast)
   $('#contrast-value').textContent = `${state.minContrast}:1 ${gradeFor(state.minContrast)}`
-  $('#readable-code').innerHTML = highlight(`colorFor('billing', {\n  background: ${jsString(state.surface)},\n  minContrast: ${state.minContrast},\n})\n// ${engine.colorFor('billing', { ...options(), minContrast: state.minContrast })}`, state.surface)
+  const ask = { background: jsString(state.surface), minContrast: state.minContrast }
+  const call = (name: string, input: string, hex: string) => `${name}(${input}, {\n  background: ${ask.background},\n  minContrast: ${ask.minContrast},\n})\n// ${jsString(hex)}`
+  $('#readable-code').innerHTML = highlight(`${call('readable', "'#c2410c'", engine.readable('#c2410c', { ...options(), minContrast: state.minContrast }))}\n\n${call('colorFor', "'billing'", engine.colorFor('billing', { ...options(), minContrast: state.minContrast }))}`, state.surface)
 
   $('#readable-body').innerHTML = SURFACES
     .map(surface => {

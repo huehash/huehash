@@ -210,6 +210,9 @@ test('landing: readable: the contrast you ask for holds on every surface', () =>
   type(dom, '#contrast-slider', '10')
   assert.equal(q(dom, '#contrast-value').textContent, '10:1 AAA')
   assert.match(q(dom, '#readable-code').textContent ?? '', /minContrast: 10,/)
+  const ask = q(dom, '#readable-code').textContent ?? ''
+  assert.match(ask, /^readable\('#c2410c', \{\n  background: '#0d1117',\n  minContrast: 10,\n\}\)\n\/\/ '#[0-9a-f]{6}'\n\ncolorFor\('billing', \{/)
+  assert.ok(ask.includes(`// '${readable('#c2410c', { background: '#0d1117', minContrast: 10 })}'`))
   all(dom, '#readable-body .panel').forEach(panel => {
     const lowest = Number(panel.querySelector('.worst b')!.textContent!.replace(':1', ''))
     assert.ok(lowest >= 10, `${panel.querySelector('h4')!.textContent} reached ${lowest}`)
@@ -897,9 +900,9 @@ test('the code on both pages is highlighted in colours that read on the block, a
     assert.ok(block.querySelectorAll('span[style*="color"]').length > 2, block.id || 'a code sample')
     block.querySelectorAll<HTMLElement>('span').forEach(span => assert.ok(contrastRatio(rgb(span.style.color), inkFor('#0d1117').field) >= 4.5, `${span.textContent} on the block`))
   })
-  assert.match(q(landing, '#code-blocks pre').textContent ?? '', /^import \{ colorFor \} from 'huehash'/)
+  assert.match(q(landing, '#code-blocks pre').textContent ?? '', /^import \{ readable \} from 'huehash'/)
   click(landing, '[data-code="0"]')
-  assert.match((landing.window as unknown as { copied: string[] }).copied.at(-1)!, /^import \{ colorFor \} from 'huehash'\n\ncolorFor\('orbit'\)/)
+  assert.match((landing.window as unknown as { copied: string[] }).copied.at(-1)!, /^import \{ readable \} from 'huehash'\n\nreadable\('#c2410c', \{ background: '#0d1117' \}\)/)
   click(landing, '[data-surface="#ffffff"]')
   all(landing, '.ask').forEach(block => block.querySelectorAll<HTMLElement>('span').forEach(span => assert.ok(contrastRatio(rgb(span.style.color), inkFor('#ffffff').field) >= 4.5, `${span.textContent} on white`)))
   const playground = open('try')
