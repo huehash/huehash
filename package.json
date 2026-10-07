@@ -1,7 +1,7 @@
 {
   "name": "huehash",
   "version": "0.1.0",
-  "description": "A colour for any string with guaranteed WCAG contrast on every background you use, dark or light. The same string always gets the same colour, and look-alikes keep a safe distance apart in a list, a grid or a stack.",
+  "description": "Guaranteed WCAG contrast on every background you use, dark or light, for the colour of any name. The same name always gets the same colour, and look-alikes keep a safe distance apart in a list, a grid or a stack.",
   "keywords": [
     "color",
     "colour",

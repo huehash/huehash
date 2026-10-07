@@ -1,12 +1,12 @@
 # #huehash
 
-**A colour for any string that reads on every background you use, the same every time, with a safe distance between look-alikes.**
+**Guaranteed WCAG contrast on every background you use. The same colour for the same name, with a safe distance between look-alikes.**
 
 [![CI](https://github.com/huehash/huehash/actions/workflows/ci.yml/badge.svg)](https://github.com/huehash/huehash/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 ![Dependencies: none](https://img.shields.io/badge/dependencies-none-brightgreen.svg)
 
-Give it an id, a label, a username, a chart series, a graph node or a log source, and the backgrounds it will sit on, and get a hex that meets the WCAG contrast you ask for on all of them, dark or light. The same key always gets the same colour, so a thing looks the same everywhere it appears, with nothing to store and nothing to assign. Look-alikes next to each other are kept apart.
+Tell it the backgrounds your colours will sit on and the contrast you need, then give it any id, label, username, chart series, graph node or log source. You get a hex that meets the WCAG contrast you asked for on every one of those backgrounds, dark or light. The same name always gets the same colour, so a thing looks the same everywhere it appears, with nothing to store and nothing to assign. Look-alikes next to each other are kept apart.
 
 **[Read the guided tour and try it live](https://huehash.github.io/huehash/)** · **[Open the playground](https://huehash.github.io/huehash/try/)**
 
