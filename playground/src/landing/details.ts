@@ -1,5 +1,7 @@
 import { colorFor, colorsFor, createHuehash } from '../../../src/index.js'
+import { highlight } from '../shared/code.js'
 import { $, esc } from '../shared/util.js'
+import { state } from './ctx.js'
 
 let speed = ''
 let codes: string[] = []
@@ -21,7 +23,7 @@ export function renderCode() {
   const one = `import { colorFor } from 'huehash'\n\ncolorFor('orbit')                              // '${orbit}'  reads on the default dark surface\ncolorFor('orbit', { background: '#ffffff' })   // '${onWhite}'  darkened to read on white\ncolorFor('orbits')                             // '${orbits}'  a similar name, a clearly different colour`
   const two = `import { colorsFor } from 'huehash'\n\nconst names = ['item-1', 'item-2', 'item-3', 'item-4', 'item-5', 'item-6']\nconst colors = colorsFor(names, { distance: 40 })\n\n// colors[i] belongs to names[i]; neighbours are at least 40° apart\n// [${spread.map(hex => `'${hex}'`).join(', ')}]`
   codes = [one, two]
-  $('#code-blocks').innerHTML = codes.map((code, i) => `<div class="code-wrap"><button type="button" class="quiet copy" data-action="copy" data-code="${i}">Copy</button><pre tabindex="0">${esc(code)}</pre></div>`).join('')
+  $('#code-blocks').innerHTML = codes.map((code, i) => `<div class="code-wrap"><button type="button" class="quiet copy" data-action="copy" data-code="${i}">Copy</button><pre tabindex="0">${highlight(code, state.surface)}</pre></div>`).join('')
 }
 
 export function codeAt(index: number): string {

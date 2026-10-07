@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>huehash playground</title>
-  <meta name="description" content="Pick your backgrounds and the contrast you need, try your own keys, and see the colours in real views." />
+  <meta name="description" content="Pick your backgrounds and the contrast you need, bring a colour or a list of names, and see what huehash makes of them in real views." />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='%23e1ac67'/%3E%3C/svg%3E" />
 </head>
 <body class="app">
@@ -16,40 +16,69 @@
       <a href="https://github.com/huehash/huehash"><svg class="icon" viewBox="0 0 16 16" width="18" height="18" aria-hidden="true" focusable="false"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.6 7.6 0 0 1 4 0c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>GitHub</a>
     </nav>
     <div class="top-right">
-      <div class="surfaces" role="group" aria-label="Surface colour" id="surfaces">
-        <span class="surface-presets" id="surface-presets"></span>
-        <label class="custom" title="Pick any colour"><span aria-hidden="true">+</span><input type="color" id="custom-surface" value="#0d1117" aria-label="Custom surface colour" /></label>
-      </div>
-      <button type="button" class="quiet" id="share">Copy link</button>
+      <button type="button" class="quiet" id="share-link">Copy link</button>
     </div>
   </header>
 
   <div class="workbench">
     <aside class="rail" aria-label="Options">
-      <section class="opt" aria-labelledby="o-keys">
-        <h2 id="o-keys">Keys</h2>
-        <p class="hint" id="keys-hint"></p>
-        <textarea id="keys" rows="8" spellcheck="false" aria-label="Keys, one per line"></textarea>
-        <div class="presets" id="presets" role="group" aria-label="Example keys"></div>
+      <section class="opt" aria-labelledby="o-source">
+        <h2 id="o-source">Start from</h2>
+        <div class="segmented" id="source" role="group" aria-label="What to colour"></div>
+
+        <div id="source-color">
+          <p class="hint">A colour you already have: a brand colour, or one a user picked. It keeps its hue, and only its lightness moves.</p>
+          <div class="color-row">
+            <label class="sr-only" for="color-picker">Pick your colour</label>
+            <input type="color" id="color-picker" value="#c2410c" />
+            <label class="sr-only" for="color-hex">Your colour as a hex code</label>
+            <input type="text" id="color-hex" class="hex" spellcheck="false" autocomplete="off" autocapitalize="off" maxlength="7" />
+          </div>
+          <div class="presets" id="color-presets" role="group" aria-label="Example colours"></div>
+        </div>
+
+        <div id="source-names">
+          <p class="hint" id="keys-hint"></p>
+          <label class="sr-only" for="keys">Names, one per line</label>
+          <textarea id="keys" rows="8" spellcheck="false"></textarea>
+          <div class="presets" id="presets" role="group" aria-label="Example names"></div>
+          <label class="sr-only" for="word">Try a single name</label>
+          <input id="word" class="one" type="text" spellcheck="false" autocomplete="off" autocapitalize="off" maxlength="40" />
+          <p class="readout" id="readout" aria-live="polite"></p>
+        </div>
       </section>
 
-      <section class="opt" aria-labelledby="o-one">
-        <h2 id="o-one">One key</h2>
-        <label class="sr-only" for="word">Try a single key</label>
-        <input id="word" class="one" type="text" spellcheck="false" autocomplete="off" autocapitalize="off" maxlength="40" />
-        <p class="readout" id="readout" aria-live="polite"></p>
+      <section class="opt" aria-labelledby="o-bg">
+        <h2 id="o-bg">Backgrounds</h2>
+        <p class="hint">Every colour is made to read on these.</p>
+        <div class="control">
+          <span class="label" id="draw-label">Draw on</span>
+          <div class="swatch-row" role="group" aria-labelledby="draw-label">
+            <span class="surface-presets" id="surface-presets"></span>
+            <label class="custom" title="Pick any colour"><span aria-hidden="true">+</span><input type="color" id="custom-surface" value="#0d1117" aria-label="Custom background colour" /></label>
+          </div>
+        </div>
+        <div class="control">
+          <span class="label" id="also-label">Also readable on</span>
+          <div class="swatch-row" role="group" aria-labelledby="also-label">
+            <span class="surface-presets" id="also"></span>
+            <label class="custom" title="Add any colour"><span aria-hidden="true">+</span><input type="color" id="also-custom" value="#1f2937" aria-label="Add another background colour" /></label>
+          </div>
+        </div>
+        <label class="toggle" for="share"><input type="checkbox" id="share" />One colour for all of them</label>
+        <p class="hint" id="share-hint"></p>
       </section>
 
-      <section class="opt" aria-labelledby="o-colour">
-        <h2 id="o-colour">Contrast</h2>
+      <section class="opt" aria-labelledby="o-contrast">
+        <h2 id="o-contrast">Contrast</h2>
         <div class="control"><label for="contrast">Minimum contrast<span class="value" id="contrast-value"></span></label><input type="range" id="contrast" min="3" max="12" step="0.5" /><div class="marks"><span>3</span><span>4.5 AA</span><span>7 AAA</span><span>12</span></div></div>
-        <div class="control"><span class="label">Style</span><div class="segmented" id="mode" role="group" aria-label="Style"></div></div>
+        <div class="control"><span class="label" id="mode-label">Style</span><div class="segmented" id="mode" role="group" aria-labelledby="mode-label"></div></div>
       </section>
 
-      <section class="opt" aria-labelledby="o-near">
+      <section class="opt" id="distance-section" aria-labelledby="o-near">
         <h2 id="o-near">Safe distance</h2>
         <p class="hint">Look-alike colours keep this far apart: how different they must be, and how near counts as near.</p>
-        <div class="control"><label for="distance">How different counts as different<span class="value" id="distance-value"></span></label><input type="range" id="distance" min="0" max="120" step="2" /><div class="marks"><span>0 off</span><span>30</span><span>60</span><span>120</span></div></div>
+        <div class="control"><label for="distance">How different counts as different<span class="value" id="distance-value"></span></label><input type="range" id="distance" min="0" max="120" step="2" /><div class="marks"><span>0 off</span><span>30</span><span>60</span><span>90</span><span>120</span></div></div>
         <div class="control"><label for="neighbours">How near counts as near<span class="value" id="neighbours-value"></span></label><input type="range" id="neighbours" min="1" max="6" step="1" /><div class="marks"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>all</span></div></div>
         <p class="metric" id="metric" aria-live="polite"></p>
         <p class="hint" id="layout-hint"><button type="button" class="quiet" data-scene="swatches">Try a grid or a stack in Swatches</button></p>
@@ -57,22 +86,22 @@
 
       <section class="opt" id="layout-section" aria-labelledby="o-layout" hidden>
         <h2 id="o-layout">Layout</h2>
-        <p class="hint">Where the items sit decides who their neighbours are. Hover a tile to see them.</p>
+        <p class="hint">Where the items sit decides who their neighbours are. A stack of grids is drawn in 3D where the browser can. Hover a tile to see its neighbours.</p>
         <div class="segmented" id="layout" role="group" aria-label="How the items are laid out"></div>
         <div class="control" id="columns-control"><label for="columns">Items to a row<span class="value" id="columns-value"></span></label><input type="range" id="columns" min="2" max="16" step="1" /></div>
         <div class="control" id="rows-control"><label for="rows">Rows to a layer<span class="value" id="rows-value"></span></label><input type="range" id="rows" min="1" max="8" step="1" /></div>
       </section>
 
-      <section class="opt" aria-labelledby="o-avoid">
+      <section class="opt" id="avoid-section" aria-labelledby="o-avoid">
         <h2 id="o-avoid">Reserved hues</h2>
         <label class="toggle" for="avoid"><input type="checkbox" id="avoid" />Keep clear of status colours</label>
-        <p class="hint">Steers clear of amber, green, red, cyan and magenta, so a key never looks like a state.</p>
+        <p class="hint">Steers clear of amber, green, red, cyan and magenta, so a name never looks like a state.</p>
         <div class="control"><label for="avoid-width">Width kept clear<span class="value" id="avoid-width-value"></span></label><input type="range" id="avoid-width" min="10" max="60" step="2" /></div>
         <figure class="wheel" id="wheel"></figure>
       </section>
 
       <section class="opt" aria-labelledby="o-cache">
-        <h2 id="o-cache">Cache</h2>
+        <h2 id="o-cache">Speed</h2>
         <div class="cache" id="cache"></div>
       </section>
     </aside>
@@ -83,6 +112,10 @@
       </div>
       <p class="caption" id="caption"></p>
       <div class="frame" id="frame" role="tabpanel"></div>
+      <section class="backdrops" id="backdrops" aria-labelledby="backdrops-title" hidden>
+        <h3 id="backdrops-title">On every background</h3>
+        <div class="backdrop-row" id="backdrop-row"></div>
+      </section>
       <dl class="stats" id="stats"></dl>
 
       <div class="drawer" id="drawer">

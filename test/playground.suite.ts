@@ -4,8 +4,9 @@ import { after, before, test } from 'node:test'
 import { build } from 'esbuild'
 import { JSDOM } from 'jsdom'
 import { hash32, normalize, unit } from '../src/hash.js'
-import { colorFor, colorsFor, contrastRatio, hueGap, oklchHue } from '../src/index.js'
+import { colorFor, colorsFor, contrastRatio, hueGap, oklchHue, readable } from '../src/index.js'
 import { placeEvents, SLOTS } from '../playground/src/shared/calendar.js'
+import { inkFor } from '../playground/src/shared/surface.js'
 
 type Page = 'landing' | 'try'
 const sources: Record<Page, { html: string; entry: string }> = {
@@ -59,6 +60,7 @@ const check = (dom: JSDOM, selector: string, checked: boolean) => {
 const rgb = (css: string) => '#' + (css.match(/\d+/g) ?? []).slice(0, 3).map(n => Number(n).toString(16).padStart(2, '0')).join('')
 const tileColors = (dom: JSDOM) => all(dom, '#frame .tile').map(tile => rgb(tile.style.background))
 const goToSwatches = (dom: JSDOM) => click(dom, '[data-scene="swatches"]')
+const goToNames = (dom: JSDOM) => click(dom, '[data-source="names"]')
 
 type Shape = { columns?: number; rows?: number }
 /** Where an item sits, worked out here so it can check what the page shows. */
@@ -316,7 +318,7 @@ test('landing: the real views are drawn from output, each with a link that opens
   views.forEach(view => assert.ok(view.querySelector('.view-frame')!.innerHTML.length > 100, view.className))
   const link = views[4]!.querySelector('a.open') as HTMLAnchorElement
   assert.match(link.getAttribute('href')!, /^\.\/try\/#/)
-  assert.deepEqual(decodeHash(link.getAttribute('href')!.slice('./try/'.length)), { surface: '#0d1117', scene: 'calendar' })
+  assert.deepEqual(decodeHash(link.getAttribute('href')!.slice('./try/'.length)), { surface: '#0d1117', source: 'names', scene: 'calendar' })
 })
 
 test('landing: no view shares a class with the scene inside it, so the view styles cannot leak onto its caption', () => {
@@ -408,8 +410,11 @@ test('landing and playground: a link with nonsense in it opens on the defaults',
     assert.equal((q(landing, '#distance-slider') as HTMLInputElement).value, '40')
     const playground = open('try', hash)
     assert.equal(playground.window.document.documentElement.style.getPropertyValue('--surface'), '#0d1117')
-    assert.equal(q(playground, '[data-scene="logs"]').getAttribute('aria-selected'), 'true')
+    assert.equal(q(playground, '[data-source="color"]').getAttribute('aria-pressed'), 'true')
+    assert.equal((q(playground, '#color-picker') as HTMLInputElement).value, '#c2410c')
     assert.equal((q(playground, '#neighbours') as HTMLInputElement).value, '1')
+    goToNames(playground)
+    assert.equal(q(playground, '[data-scene="logs"]').getAttribute('aria-selected'), 'true')
   })
 })
 
@@ -492,12 +497,142 @@ test('the calendar never lays two events over each other, and never makes one to
 
 /* ── playground ────────────────────────────────────────────────────────── */
 
-test('playground: opens on the logs view with the example keys coloured for the surface', () => {
+test('playground: opens on a colour, made readable on the background', () => {
   const dom = open('try')
+  assert.equal(q(dom, '[data-source="color"]').getAttribute('aria-pressed'), 'true')
+  assert.ok(q(dom, '#source-names').hidden && !q(dom, '#source-color').hidden)
+  assert.ok(q(dom, '#distance-section').hidden && q(dom, '#avoid-section').hidden, 'a colour has no neighbours and no hue to steer')
+  const panels = all(dom, '#frame .color-panel')
+  assert.equal(panels.length, 1)
+  const now = panels[0]!.querySelector<HTMLElement>('.now')!
+  assert.equal(rgb(now.style.color), readable('#c2410c', { background: '#0d1117' }))
+  assert.ok(contrastRatio(rgb(now.style.color), '#0d1117') >= 7)
+  assert.equal(rgb(panels[0]!.querySelector<HTMLElement>('.was')!.style.color), '#c2410c')
+  assert.match(panels[0]!.textContent ?? '', /Lightness \d+% to \d+%\. The hue stays at \d+°/)
+})
+
+test('playground: your colour is made readable on every background you add, each with its own result', () => {
+  const dom = open('try')
+  ;['#0f3552', '#3b1a3f', '#ffffff'].forEach(hex => click(dom, `[data-also="${hex}"]`))
+  const panels = all(dom, '#frame .color-panel')
+  assert.deepEqual(panels.map(panel => rgb(panel.style.background)), ['#0d1117', '#0f3552', '#3b1a3f', '#ffffff'])
+  panels.forEach(panel => {
+    const background = rgb(panel.style.background)
+    const now = rgb(panel.querySelector<HTMLElement>('.now')!.style.color)
+    assert.equal(now, readable('#c2410c', { background }), background)
+    assert.ok(contrastRatio(now, background) >= 7, `${background}: ${now}`)
+    assert.match(panel.querySelector('.now')!.nextElementSibling!.textContent!, new RegExp(`${now}`))
+  })
+  assert.equal(all(dom, '#stats dd')[0]!.textContent, '4')
+  const hues = panels.map(panel => oklchHue(rgb(panel.querySelector<HTMLElement>('.now')!.style.color)))
+  hues.forEach(hue => assert.ok(hueGap(hue, oklchHue('#c2410c')) < 8, `hue stayed near the original: ${hue}`))
+  click(dom, '[data-also="#3b1a3f"]')
+  assert.equal(all(dom, '#frame .color-panel').length, 3)
+})
+
+test('playground: a colour that already reads is left exactly as it is', () => {
+  const dom = open('try')
+  type(dom, '#color-hex', '#FEA9A2')
+  const panel = q(dom, '#frame .color-panel')
+  assert.equal(rgb(panel.querySelector<HTMLElement>('.now')!.style.color), '#fea9a2')
+  assert.match(panel.textContent ?? '', /Unchanged/)
+  assert.match(panel.textContent ?? '', /Already reads/)
+  assert.equal(q(dom, '#stats').textContent!.includes('1 of 1'), true)
+})
+
+test('playground: a colour can be picked, typed in short form or chosen from the examples, and a half-typed one waits', () => {
+  const dom = open('try')
+  const now = () => rgb(q(dom, '#frame .now').style.color)
+  type(dom, '#color-picker', '#4338ca')
+  assert.equal(now(), readable('#4338ca', { background: '#0d1117' }))
+  assert.equal((q(dom, '#color-hex') as HTMLInputElement).value, '#4338ca')
+  type(dom, '#color-hex', '#b45')
+  assert.equal(now(), readable('#bb4455', { background: '#0d1117' }))
+  type(dom, '#color-hex', '#b4')
+  assert.equal(q(dom, '#color-hex').getAttribute('aria-invalid'), 'true')
+  assert.equal(now(), readable('#bb4455', { background: '#0d1117' }), 'a half-typed colour changes nothing')
+  click(dom, '[data-color="#166534"]')
+  assert.equal(now(), readable('#166534', { background: '#0d1117' }))
+  assert.equal(q(dom, '#color-hex').getAttribute('aria-invalid'), null)
+})
+
+test('playground: one colour for all of them is checked against every background, and says when that cannot work', () => {
+  const dom = open('try')
+  assert.ok((q(dom, '#share') as HTMLInputElement).disabled, 'there is nothing to share with one background')
+  click(dom, '[data-also="#0f3552"]')
+  assert.ok(!(q(dom, '#share') as HTMLInputElement).disabled)
+  check(dom, '#share', true)
+  const shared = readable('#c2410c', { background: ['#0d1117', '#0f3552'] })
+  all(dom, '#frame .now').forEach(now => assert.equal(rgb(now.style.color), shared))
+  assert.match(q(dom, '#share-hint').textContent ?? '', /every name, checked against all/i)
+  click(dom, '[data-also="#ffffff"]')
+  assert.match(q(dom, '#share-hint').textContent ?? '', /dark and a light background cannot share/)
+  click(dom, '#drawer-toggle')
+  assert.match(q(dom, '#code').textContent ?? '', /background: \['#0d1117', '#0f3552', '#ffffff'\]/)
+})
+
+test('playground: choosing the background to draw on takes it out of the others', () => {
+  const dom = open('try')
+  click(dom, '[data-also="#ffffff"]')
+  assert.equal(all(dom, '#frame .color-panel').length, 2)
+  click(dom, '[data-surface="#ffffff"]')
+  assert.equal(all(dom, '#frame .color-panel').length, 1)
+  assert.deepEqual(all(dom, '#also [data-also][aria-pressed="true"]'), [])
+  type(dom, '#also-custom', '#1f2937', 'change')
+  assert.equal(all(dom, '#frame .color-panel').length, 2)
+  assert.ok(q(dom, '#also [data-also="#1f2937"]'), 'a colour you add stays in the list so you can take it out again')
+  type(dom, '#also-custom', '#1f2937', 'change')
+  assert.equal(all(dom, '#frame .color-panel').length, 2, 'adding the same background twice adds it once')
+})
+
+test('playground: names are shown on every background, each set made for its own background', () => {
+  const dom = open('try')
+  goToNames(dom)
+  assert.ok(q(dom, '#backdrops').hidden, 'one background needs no comparison')
+  ;['#0f3552', '#ffffff'].forEach(hex => click(dom, `[data-also="${hex}"]`))
+  assert.ok(!q(dom, '#backdrops').hidden)
+  const panels = all(dom, '#backdrop-row .backdrop')
+  assert.equal(panels.length, 3)
+  const keys = q(dom, '#keys') as HTMLTextAreaElement
+  const names = keys.value.split('\n')
+  panels.forEach(panel => {
+    const background = rgb(panel.style.background)
+    const expected = colorsFor(names, { background, distance: 40, neighbours: 1 })
+    const shown = [...panel.querySelectorAll<HTMLElement>('li')].map(li => rgb(li.style.color))
+    assert.deepEqual(shown, expected.slice(0, shown.length), background)
+    shown.forEach(hex => assert.ok(contrastRatio(hex, background) >= 7, `${hex} on ${background}`))
+    assert.ok(Number(panel.querySelector('.worst b')!.textContent!.replace(':1', '')) >= 7)
+  })
+  check(dom, '#share', true)
+  assert.match(q(dom, '#share-hint').textContent ?? '', /dark and a light background cannot share/)
+  click(dom, '#drawer-toggle')
+  assert.match(q(dom, '#code').textContent ?? '', /background: \['#0d1117', '#0f3552', '#ffffff'\]/)
+})
+
+test('playground: without sharing, the code asks for each background on its own', () => {
+  const dom = open('try')
+  goToNames(dom)
+  click(dom, '[data-also="#ffffff"]')
+  click(dom, '#drawer-toggle')
+  const js = q(dom, '#code').textContent!
+  assert.match(js, /const carbon = colorsFor\(keys, \{ background: '#0d1117', distance: 40 \}\)/)
+  assert.match(js, /const daylight = colorsFor\(keys, \{ background: '#ffffff', distance: 40 \}\)/)
+  click(dom, '[data-tab="json"]')
+  const parsed = JSON.parse(q(dom, '#code').textContent!) as Record<string, Record<string, string>>
+  assert.deepEqual(Object.keys(parsed), ['carbon', 'daylight'])
+  assert.notEqual(parsed.carbon!.api, parsed.daylight!.api)
+  click(dom, '[data-tab="css"]')
+  assert.match(q(dom, '#code').textContent!, /\[data-background='daylight'\] \{\n  --huehash-api: #[0-9a-f]{6};/)
+})
+
+test('playground: names open on the logs view with the example keys coloured for the background', () => {
+  const dom = open('try')
+  goToNames(dom)
   assert.equal(q(dom, '[data-scene="logs"]').getAttribute('aria-selected'), 'true')
   assert.equal(all(dom, '#scenes [role="tab"]').length, 7)
   assert.match((q(dom, '#keys') as HTMLTextAreaElement).value, /^api\n/)
   assert.ok(q(dom, '#frame').innerHTML.length > 100)
+  assert.ok(!q(dom, '#distance-section').hidden && !q(dom, '#avoid-section').hidden)
 })
 
 test('playground: each view renders its own example keys, and your keys carry across views', () => {
@@ -640,8 +775,24 @@ test('playground: reserved hues keep generated colours clear of the status colou
   assert.ok(without > 0, 'without the option some keys land near a status colour')
 })
 
+test('playground: the code for a colour is readable() calls, one for each background', () => {
+  const dom = open('try')
+  click(dom, '[data-also="#ffffff"]')
+  click(dom, '#drawer-toggle')
+  const js = q(dom, '#code').textContent!
+  assert.match(js, /^import \{ readable \} from 'huehash'/)
+  assert.ok(js.includes(`readable('#c2410c', { background: '#0d1117' })  // '${readable('#c2410c', { background: '#0d1117' })}'`))
+  assert.ok(js.includes(`readable('#c2410c', { background: '#ffffff' })  // '${readable('#c2410c', { background: '#ffffff' })}'`))
+  click(dom, '[data-tab="css"]')
+  assert.match(q(dom, '#code').textContent!, /--huehash-carbon: #[0-9a-f]{6};\n  --huehash-daylight: #[0-9a-f]{6};/)
+  type(dom, '#contrast', '4.5')
+  click(dom, '[data-tab="js"]')
+  assert.match(q(dom, '#code').textContent!, /\{ background: '#0d1117', minContrast: 4\.5 \}/)
+})
+
 test('playground: the code drawer opens and shows JavaScript, CSS variables and valid JSON', () => {
   const dom = open('try')
+  goToNames(dom)
   assert.ok(q(dom, '#drawer-body').hidden)
   click(dom, '#drawer-toggle')
   assert.ok(!q(dom, '#drawer-body').hidden)
@@ -675,8 +826,33 @@ test('playground: times 100,000 lookups with and without the cache', async () =>
   assert.match(q(dom, '#timing').textContent ?? '', /100,000 lookups: \d+ ms calculating each time, \d+ ms cached/)
 })
 
+test('playground: backgrounds, the colour and what to start from live in the link', () => {
+  const dom = open('try')
+  click(dom, '[data-also="#0f3552"]')
+  click(dom, '[data-also="#ffffff"]')
+  check(dom, '#share', true)
+  click(dom, '[data-color="#4338ca"]')
+  const again = open('try', dom.window.location.hash)
+  assert.equal(all(again, '#frame .color-panel').length, 3)
+  assert.equal((q(again, '#share') as HTMLInputElement).checked, true)
+  assert.equal((q(again, '#color-hex') as HTMLInputElement).value, '#4338ca')
+  assert.deepEqual(all(again, '#also [aria-pressed="true"]').map(b => b.dataset.also), ['#0f3552', '#ffffff'])
+  goToNames(again)
+  const names = open('try', again.window.location.hash)
+  assert.equal(q(names, '[data-source="names"]').getAttribute('aria-pressed'), 'true')
+})
+
+test('playground: a link cannot add rubbish, repeats or too many backgrounds', () => {
+  const hash = `#${Buffer.from(JSON.stringify({ also: ['#ffffff', '#ffffff', 'red', 7, '#0d1117', '#0f3552', '#3b1a3f', '#1f2937', '#111111'], color: 'blue', source: 'both' })).toString('base64url')}`
+  const dom = open('try', hash)
+  assert.deepEqual(all(dom, '#frame .color-panel').map(panel => rgb(panel.style.background)), ['#0d1117', '#ffffff', '#0f3552', '#3b1a3f'])
+  assert.equal((q(dom, '#color-hex') as HTMLInputElement).value, '#c2410c')
+  assert.equal(q(dom, '[data-source="color"]').getAttribute('aria-pressed'), 'true')
+})
+
 test('playground: the settings live in the link, so a link restores them', () => {
   const dom = open('try')
+  goToNames(dom)
   type(dom, '#distance', '84')
   click(dom, '[data-surface="#3b1a3f"]')
   click(dom, '[data-scene="chart"]')
@@ -698,6 +874,7 @@ test('playground: keys are treated as text, never as markup', () => {
 
 test('playground: an empty list and a single key do not break any view', () => {
   const dom = open('try')
+  goToNames(dom)
   const scenes = all(dom, '#scenes [role="tab"]').map(tab => tab.dataset.scene!)
   type(dom, '#keys', '')
   scenes.forEach(id => {
@@ -709,7 +886,27 @@ test('playground: an empty list and a single key do not break any view', () => {
     click(dom, `[data-scene="${id}"]`)
     assert.ok(q(dom, '#frame').innerHTML.length > 50, `${id} renders one key`)
   })
-  assert.match(q(dom, '#metric').textContent ?? '', /at least two keys/)
+  assert.match(q(dom, '#metric').textContent ?? '', /at least two names/)
+})
+
+test('the code on both pages is highlighted in colours that read on the block, and still copies as plain code', () => {
+  const landing = open('landing')
+  const blocks = [...all(landing, '.ask'), ...all(landing, '#code-blocks pre')]
+  assert.equal(blocks.length, 7)
+  blocks.forEach(block => {
+    assert.ok(block.querySelectorAll('span[style*="color"]').length > 2, block.id || 'a code sample')
+    block.querySelectorAll<HTMLElement>('span').forEach(span => assert.ok(contrastRatio(rgb(span.style.color), inkFor('#0d1117').field) >= 4.5, `${span.textContent} on the block`))
+  })
+  assert.match(q(landing, '#code-blocks pre').textContent ?? '', /^import \{ colorFor \} from 'huehash'/)
+  click(landing, '[data-code="0"]')
+  assert.match((landing.window as unknown as { copied: string[] }).copied.at(-1)!, /^import \{ colorFor \} from 'huehash'\n\ncolorFor\('orbit'\)/)
+  click(landing, '[data-surface="#ffffff"]')
+  all(landing, '.ask').forEach(block => block.querySelectorAll<HTMLElement>('span').forEach(span => assert.ok(contrastRatio(rgb(span.style.color), inkFor('#ffffff').field) >= 4.5, `${span.textContent} on white`)))
+  const playground = open('try')
+  click(playground, '#drawer-toggle')
+  assert.ok(playground.window.document.querySelectorAll('#code span[style*="color"]').length > 2)
+  click(playground, '#copy')
+  assert.equal((playground.window as unknown as { copied: string[] }).copied.at(-1), q(playground, '#code').textContent)
 })
 
 test('the logo gives every letter its own colour, kept apart from its neighbours, on both pages', () => {

@@ -13,4 +13,4 @@ First release.
 - Dark and light surfaces, several backgrounds at once, and hue ranges to keep free.
 - A bounded LRU cache, with `createHuehash` for instances that have their own defaults and cache.
 - `toCssVariables`, `avoidHuesOf`, `contrastRatio`, `oklchHue` and `gradeFor`.
-- A landing page and a playground. The playground shows your keys in seven real views (logs, chart, calendar, presence, people, labels, swatches) with contrast, distance, neighbour, reserved-hue and cache options, and exports JavaScript, CSS variables or JSON.
+- A landing page and a playground. The playground starts from a colour or from names, and checks them on several backgrounds at once, as one set of colours made for each background or one set that reads on all of them. Names appear in seven real views (logs, chart, calendar, presence, people, labels, swatches), with the stack of grids drawn in 3D with WebGPU where the browser has it. It has contrast, distance, neighbour, reserved-hue and cache options, and exports JavaScript, CSS variables or JSON. Code on both pages is highlighted with colours huehash makes for the block they sit on.

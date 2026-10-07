@@ -215,8 +215,3 @@ main { padding: 0 var(--gutter); }
 .try-surfaces li { display: flex; flex-direction: column; gap: 4px; padding: 12px 14px; min-width: 0; }
 .try-surfaces b { font: italic 400 26px/1.15 var(--serif); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .try-surfaces span { font: 400 11px/1.4 var(--mono); }
-
-/* The stack of grids in 3D */
-.stack3d-canvas { display: block; width: 100%; height: clamp(320px, 52vw, 560px); border: 1px solid var(--rule); border-radius: 8px; cursor: grab; touch-action: pan-y; }
-.stack3d-canvas.turning { cursor: grabbing; }
-.stack3d-readout { margin-top: 10px; min-height: 1.6em; color: var(--muted); font-size: 12.5px; line-height: 1.6; }

@@ -4,6 +4,7 @@
 .opt { padding: 22px 0; border-bottom: 1px solid var(--rule); display: grid; gap: 12px; }
 .opt:last-child { border-bottom: 0; }
 .opt h2 { font-size: 24px; }
+#source-color, #source-names { display: grid; gap: 12px; }
 .hint, .metric, .readout { color: var(--muted); font-size: 16px; line-height: 1.4; }
 .metric b, .readout b { color: var(--ink); font-weight: 400; }
 .readout { display: flex; flex-wrap: wrap; gap: 4px 14px; font: 400 12px/1.6 var(--mono); }
@@ -54,3 +55,28 @@ input[type='range'] { width: 100%; accent-color: var(--ink); cursor: pointer; }
   .rail { position: static; max-height: none; border-right: 0; border-bottom: 1px solid var(--rule); padding: 8px var(--gutter) 24px; }
   .stage { padding: 20px var(--gutter) 0; }
 }
+
+/* Start from a colour */
+.color-row { display: flex; gap: 10px; align-items: center; }
+.color-row input[type='color'] { flex: none; width: 56px; height: 40px; padding: 0; border: 1px solid var(--faint); border-radius: 4px; background: none; cursor: pointer; }
+input.hex { max-width: 9em; font: 400 15px/1.3 var(--mono); }
+input[aria-invalid='true'] { border-style: dashed; border-color: var(--ink); }
+.swatch-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+
+/* Your colour on each background */
+.color-panels { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); border: 1px solid var(--rule); border-radius: 8px; overflow: hidden; }
+.color-panel { display: flex; flex-direction: column; gap: 4px; min-width: 0; padding: 22px; }
+.color-panel h4 { font: italic 400 28px/1.1 var(--serif); }
+.color-panel .sample { margin-top: 16px; font: italic 400 clamp(30px, 3.4vw, 46px)/1.1 var(--serif); overflow-wrap: anywhere; }
+.color-panel .mono { color: var(--muted); font-size: 11.5px; line-height: 1.5; overflow-wrap: anywhere; }
+.color-panel .change { margin-top: 14px; }
+
+/* The same names on every background */
+.backdrops { margin-top: 8px; padding-bottom: 8px; }
+.backdrops h3 { margin: 8px 0 14px; font: italic 400 26px/1.1 var(--serif); }
+.backdrop-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); border: 1px solid var(--rule); border-radius: 8px; overflow: hidden; }
+.backdrop { padding: 18px 20px; min-width: 0; }
+.backdrop h4 { font: italic 400 22px/1.1 var(--serif); }
+.backdrop ul { display: flex; flex-wrap: wrap; gap: 2px 14px; margin: 12px 0; padding: 0; list-style: none; font: italic 400 22px/1.3 var(--serif); }
+.backdrop .mono { color: var(--muted); font-size: 11.5px; line-height: 1.5; }
+.backdrop .worst b { color: var(--ink); font-weight: 500; }

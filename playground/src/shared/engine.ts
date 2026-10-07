@@ -9,7 +9,12 @@ export const STATUS_LABELS = ['warning', 'success', 'error', 'info', 'beta']
 export const EVERYONE = 6
 
 export type Settings = {
+  /** The background the preview is drawn on. */
   surface: string
+  /** More backgrounds the colours must read on as well. */
+  also: string[]
+  /** One colour that reads on every background, instead of one colour made for each. */
+  share: boolean
   minContrast: number
   mode: 'auto' | 'dark' | 'light'
   avoid: boolean
@@ -20,6 +25,8 @@ export type Settings = {
 
 export const DEFAULT_SETTINGS: Settings = {
   surface: '#0d1117',
+  also: [],
+  share: false,
   minContrast: 7,
   mode: 'auto',
   avoid: false,
@@ -28,8 +35,12 @@ export const DEFAULT_SETTINGS: Settings = {
   neighbours: 1,
 }
 
-export const colorOptions = (s: Settings): Options => ({
-  background: s.surface,
+/** Every background the colours are made for: the one drawn on, then the others. */
+export const backgroundsOf = (s: Pick<Settings, 'surface' | 'also'>): string[] => [s.surface, ...s.also.filter(hex => hex !== s.surface)]
+
+/** The options for the library. By default each background gets colours made for it; `share` asks for one set that reads on all of them. */
+export const colorOptions = (s: Settings, background?: string): Options => ({
+  background: background ?? (s.share ? backgroundsOf(s) : s.surface),
   minContrast: s.minContrast,
   mode: s.mode === 'auto' ? undefined : s.mode,
   avoid: s.avoid ? avoidHuesOf(STATUS, s.avoidWidth) : [],
@@ -130,7 +141,7 @@ export function readHash<T extends object>(defaults: T): T {
 }
 
 export function writeHash<T extends object>(state: T, defaults: T) {
-  const changed = Object.fromEntries(Object.entries(state).filter(([key, value]) => value !== defaults[key as keyof T]))
+  const changed = Object.fromEntries(Object.entries(state).filter(([key, value]) => JSON.stringify(value) !== JSON.stringify(defaults[key as keyof T])))
   const encoded = Object.keys(changed).length ? btoa(unescape(encodeURIComponent(JSON.stringify(changed)))).replace(/\+/g, '-').replace(/\//g, '_') : ''
   history.replaceState(null, '', `${location.pathname}${location.search}${encoded ? `#${encoded}` : ''}`)
 }
