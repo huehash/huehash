@@ -1,7 +1,8 @@
 import { avoidHuesOf, contrastRatio, gradeFor, hueGap, oklchHue } from '../../../src/index.js'
-import { closestPair, gridFor, gridOptions, LAYOUTS, naiveColor, sequenceOf, STATUS, STATUS_LABELS, type Layout } from '../shared/engine.js'
+import { closestPair, gridFor, gridOptions, LAYOUTS, naiveColor, sequenceOf, type Sequence, STATUS, STATUS_LABELS, type Layout } from '../shared/engine.js'
 import { LINE, type Grid } from '../../../src/grid.js'
-import { SCENES } from '../shared/scenes.js'
+import { lookAlikes, SCENES } from '../shared/scenes.js'
+import { createStack3d, webgpuAvailable, type Stack3d } from '../shared/stack3d.js'
 import { inkFor, SURFACES } from '../shared/surface.js'
 import { $, esc } from '../shared/util.js'
 import { wheelSvg } from '../shared/wheel.js'
@@ -49,27 +50,10 @@ export function renderStable() {
 
 /* ── Readable ──────────────────────────────────────────────────────────── */
 
-const OWN_COLOR = /^#[0-9a-f]{6}$/i
-let ownColor = '#c2410c'
-
-export function chooseOwnColor(value: string) {
-  if (OWN_COLOR.test(value)) ownColor = value.toLowerCase()
-}
-
 export function renderReadable() {
   syncSlider('#contrast-slider', state.minContrast)
   $('#contrast-value').textContent = `${state.minContrast}:1 ${gradeFor(state.minContrast)}`
-  const mine = engine.readable(ownColor, { ...options(), minContrast: state.minContrast })
-  $('#readable-code').textContent = `readable(${jsString(ownColor)}, {\n  background: ${jsString(state.surface)},\n  minContrast: ${state.minContrast},\n})\n// ${jsString(mine)}\n\n// colorFor and colorsFor take the same options`
-  const own = $<HTMLInputElement>('#own-color')
-  if (document.activeElement !== own) own.value = ownColor
-  $('#own-cells').innerHTML = SURFACES.map(surface => {
-    const ink = inkFor(surface.hex)
-    const fixed = engine.readable(ownColor, { background: surface.hex, minContrast: state.minContrast })
-    const before = contrastRatio(ownColor, surface.hex)
-    const after = contrastRatio(fixed, surface.hex)
-    return `<li style="background:${surface.hex};color:${ink.muted}"><span class="mono">${surface.name}</span><b class="was" style="color:${ownColor}">Your colour</b><span class="mono">${before.toFixed(1)}:1</span><b class="now" style="color:${fixed}">Made readable</b><span class="mono">${after.toFixed(1)}:1, ${esc(fixed)}</span></li>`
-  }).join('')
+  $('#readable-code').textContent = `colorFor('billing', {\n  background: ${jsString(state.surface)},\n  minContrast: ${state.minContrast},\n})\n// ${engine.colorFor('billing', { ...options(), minContrast: state.minContrast })}`
 
   $('#readable-body').innerHTML = SURFACES
     .map(surface => {
@@ -112,13 +96,64 @@ const SPACES: Record<Layout, { count: number; grid: Grid }> = {
 
 const stepsLabel = (steps: number) => (steps === 1 ? '1 step' : `${steps} steps`)
 
+/* The stack of grids is drawn in 3D with WebGPU where the browser has it, and as flat layers everywhere else. */
+let gpu: 'idle' | 'loading' | 'ready' | 'none' = webgpuAvailable() ? 'idle' : 'none'
+let stack3d: Stack3d | null = null
+let holder: HTMLElement | null = null
+let drawn: Sequence | null = null
+
+const STACK_HINT = 'Hover a tile. Drag to turn the stack.'
+
+/** The canvas and its caption, made once and moved into the page each time the exhibit is redrawn. */
+function stackHolder(): HTMLElement {
+  if (!holder) {
+    holder = document.createElement('div')
+    holder.className = 'stack3d'
+    holder.innerHTML = `<canvas class="stack3d-canvas" role="img" aria-label="A stack of three grids of tiles, drawn in 3D. Drag to turn it, hover a tile to see its neighbours."></canvas><p class="stack3d-readout mono" aria-live="polite">${STACK_HINT}</p>`
+  }
+  return holder
+}
+
+function showReadout(index: number | null) {
+  const readout = holder?.querySelector('.stack3d-readout')
+  if (!readout) return
+  readout.textContent = index === null || !drawn ? STACK_HINT : `${drawn.keys[index]}, ${drawn.colors[index]}`
+}
+
+function startGpu() {
+  if (gpu !== 'idle') return
+  gpu = 'loading'
+  const canvas = stackHolder().querySelector('canvas')!
+  const fallBack = () => {
+    gpu = 'none'
+    stack3d?.destroy()
+    stack3d = null
+    renderApart()
+  }
+  createStack3d(canvas, { onHover: showReadout, onLost: fallBack }).then(
+    created => {
+      stack3d = created
+      if (created) {
+        gpu = 'ready'
+        renderApart()
+      } else fallBack()
+    },
+    (error: unknown) => {
+      console.warn('huehash: WebGPU could not start, showing the flat view.', error)
+      fallBack()
+    },
+  )
+}
+
+const shows3d = () => state.layout === 'stack' && gpu === 'ready'
+
 function strip(distance: number) {
   const { count, grid } = SPACES[state.layout]
   const names = Array.from({ length: count }, (_, i) => `item-${i + 1}`)
   const seq = sequenceOf(engine, names, { ...settings(), distance, neighbours: state.steps }, grid)
   const pair = closestPair(seq, state.steps)
-  const tiles = SCENES.find(s => s.id === 'swatches')!.render(seq)
-  return `${tiles}<p class="metric">Closest neighbours within ${stepsLabel(state.steps)}: <b>${pair ? pair.gap.toFixed(0) : 0}°</b> apart${pair ? ` (${esc(pair.a)} and ${esc(pair.b)})` : ''}.</p>`
+  const tiles = shows3d() ? '<div id="stack3d-slot"></div>' : SCENES.find(s => s.id === 'swatches')!.render(seq)
+  return { seq, html: `${tiles}<p class="metric">Closest neighbours within ${stepsLabel(state.steps)}: <b>${pair ? pair.gap.toFixed(0) : 0}°</b> apart${pair ? ` (${esc(pair.a)} and ${esc(pair.b)})` : ''}.</p>` }
 }
 
 export function renderApart() {
@@ -131,7 +166,19 @@ export function renderApart() {
   const layout = Object.entries(gridOptions(grid)).map(([name, value]) => `\n  ${name}: ${value},`).join('')
   $('#apart-code').textContent = `colorsFor(names, {\n  distance: ${state.distance},\n  neighbours: ${state.steps},${layout}\n})`
   const buttons = LAYOUTS.map(({ id, label: text }) => `<button type="button" data-action="layout" data-layout="${id}" aria-pressed="${state.layout === id}">${text}</button>`).join('')
-  $('#apart-body').innerHTML = `<div class="segmented" role="group" aria-label="How the items are laid out">${buttons}</div><p class="exhibit-note">Hover a tile to see which tiles count as its neighbours. Dashed tiles look alike. Drag the distance to off to see what happens without it.</p><div class="nb-row"><h4>Distance ${label}</h4>${strip(state.distance)}</div>`
+  if (state.layout === 'stack') startGpu()
+  const { seq, html } = strip(state.distance)
+  const note = shows3d()
+    ? 'Hover a tile to see which tiles count as its neighbours, and drag to turn the stack. Lifted tiles look alike. Drag the distance to off to see what happens without it.'
+    : 'Hover a tile to see which tiles count as its neighbours. Dashed tiles look alike. Drag the distance to off to see what happens without it.'
+  $('#apart-body').innerHTML = `<div class="segmented" role="group" aria-label="How the items are laid out">${buttons}</div><p class="exhibit-note">${note}</p><div class="nb-row"><h4>Distance ${label}</h4>${html}</div>`
+  const slot = document.getElementById('stack3d-slot')
+  if (slot && stack3d) {
+    drawn = seq
+    slot.append(stackHolder())
+    showReadout(null)
+    stack3d.update({ colors: seq.colors, alike: lookAlikes(seq), grid: seq.grid, steps: seq.steps, surface: state.surface })
+  }
 }
 
 /* ── Reserved ──────────────────────────────────────────────────────────── */

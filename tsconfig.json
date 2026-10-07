@@ -11,7 +11,7 @@
     "noEmit": true,
     "skipLibCheck": true,
     "isolatedModules": true,
-    "types": ["node"]
+    "types": ["node", "@webgpu/types"]
   },
   "include": ["src", "test", "playground/src", "playground/vite.config.ts"]
 }

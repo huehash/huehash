@@ -128,16 +128,22 @@ function labels(seq: Sequence): string {
 /** Two neighbours closer than this many degrees of hue are flagged as looking alike. */
 const LOOKS_ALIKE = 15
 
-function swatches(seq: Sequence): string {
-  if (!seq.keys.length) return empty
-  const { grid, steps } = seq
+/** The tiles that sit within a few steps of a tile whose hue is close to theirs. */
+export function lookAlikes(seq: Sequence): Set<number> {
   const alike = new Set<number>()
-  neighbourPairs(seq, Math.min(steps, 5)).forEach(([earlier, later]) => {
+  neighbourPairs(seq, Math.min(seq.steps, 5)).forEach(([earlier, later]) => {
     if (seq.keys[earlier] !== seq.keys[later] && hueGap(seq.hues[earlier]!, seq.hues[later]!) < LOOKS_ALIKE) {
       alike.add(earlier)
       alike.add(later)
     }
   })
+  return alike
+}
+
+function swatches(seq: Sequence): string {
+  if (!seq.keys.length) return empty
+  const { grid, steps } = seq
+  const alike = lookAlikes(seq)
   const tile = (index: number) =>
     `<div class="tile${alike.has(index) ? ' near' : ''}" data-index="${index}" style="background:${seq.colors[index]};color:${readableOn(seq.colors[index]!)}" title="${esc(seq.keys[index]!)}, ${seq.colors[index]}">${esc(seq.keys[index]!)}</div>`
   const everyIndex = seq.keys.map((_, index) => index)

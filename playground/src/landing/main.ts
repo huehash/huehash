@@ -12,7 +12,7 @@ import { persist, state } from './ctx.js'
 import { codeAt, renderCode, renderFacts, runBench } from './details.js'
 import { paint, renderHero, renderTop } from './hero.js'
 import { renderHow, renderWall } from './how.js'
-import { chooseChange, chooseOwnColor, renderApart, renderEven, renderReadable, renderReserved, renderStable } from './promises.js'
+import { chooseChange, renderApart, renderEven, renderReadable, renderReserved, renderStable } from './promises.js'
 import { renderViews } from './views.js'
 
 function renderAll() {
@@ -98,10 +98,6 @@ document.addEventListener('input', event => {
   if (target.id === 'custom-surface') {
     state.surface = target.value
     return renderAll()
-  }
-  if (target.id === 'own-color') {
-    chooseOwnColor(target.value)
-    return renderReadable()
   }
   if (target.id === 'contrast-slider') {
     state.minContrast = Number(target.value)

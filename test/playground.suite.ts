@@ -4,7 +4,7 @@ import { after, before, test } from 'node:test'
 import { build } from 'esbuild'
 import { JSDOM } from 'jsdom'
 import { hash32, normalize, unit } from '../src/hash.js'
-import { colorFor, colorsFor, contrastRatio, hueGap, oklchHue, readable } from '../src/index.js'
+import { colorFor, colorsFor, contrastRatio, hueGap, oklchHue } from '../src/index.js'
 import { placeEvents, SLOTS } from '../playground/src/shared/calendar.js'
 
 type Page = 'landing' | 'try'
@@ -216,22 +216,6 @@ test('landing: readable: the contrast you ask for holds on every surface', () =>
   })
   type(dom, '#contrast-slider', '4.5')
   assert.equal(q(dom, '#contrast-value').textContent, '4.5:1 AA')
-})
-
-test('landing: readable: your own colour is made readable on every surface and keeps its hue', () => {
-  const dom = open('landing')
-  assert.equal(all(dom, '#own-cells li').length, 4)
-  type(dom, '#own-color', '#4338ca')
-  const surfaces = ['#0d1117', '#0f3552', '#3b1a3f', '#ffffff']
-  all(dom, '#own-cells li').forEach((li, i) => {
-    const surface = surfaces[i]!
-    const was = li.querySelector<HTMLElement>('.was')!
-    const now = li.querySelector<HTMLElement>('.now')!
-    assert.equal(rgb(was.style.color), '#4338ca')
-    assert.equal(rgb(now.style.color), readable('#4338ca', { background: surface }), surface)
-    assert.ok(contrastRatio(rgb(now.style.color), surface) >= 7, surface)
-  })
-  assert.match(q(dom, '#readable-code').textContent ?? '', /readable\('#4338ca', \{/)
 })
 
 test('landing: even: the plain hash fails where huehash does not', () => {
