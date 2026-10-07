@@ -1,12 +1,12 @@
 # #huehash
 
-**Guaranteed WCAG contrast on every background you use. The same colour for the same name, with a safe distance between look-alikes.**
+**A colour utility for dark and light interfaces. Make any colour readable on every background you use, get the same colour for the same name, and keep look-alikes a safe distance apart.**
 
 [![CI](https://github.com/huehash/huehash/actions/workflows/ci.yml/badge.svg)](https://github.com/huehash/huehash/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 ![Dependencies: none](https://img.shields.io/badge/dependencies-none-brightgreen.svg)
 
-Tell it the backgrounds your colours will sit on and the contrast you need, then give it any id, label, username, chart series, graph node or log source. You get a hex that meets the WCAG contrast you asked for on every one of those backgrounds, dark or light. The same name always gets the same colour, so a thing looks the same everywhere it appears, with nothing to store and nothing to assign. Look-alikes next to each other are kept apart.
+Tell it the backgrounds your colours will sit on and the contrast you need. Then either hand it a colour you already have (a brand colour, a colour a user picked) and get back one that meets the WCAG contrast on every one of those backgrounds, dark or light, or hand it any id, label, username, chart series, graph node or log source and get a colour for it. A name always gets the same colour, so a thing looks the same everywhere it appears, with nothing to store and nothing to assign, and look-alikes next to each other are kept apart.
 
 **[Read the guided tour and try it live](https://huehash.github.io/huehash/)** · **[Open the playground](https://huehash.github.io/huehash/try/)**
 
@@ -15,13 +15,17 @@ npm install huehash
 ```
 
 ```ts
-import { colorFor, colorsFor } from 'huehash'
+import { colorFor, colorsFor, readable } from 'huehash'
 
-colorFor('orbit')                                         // '#3dd4b9', 9.3:1 on the default dark surface
-colorFor('orbit', { background: '#ffffff' })              // '#046254', darkened to read on white
-colorFor('orbit', { background: ['#0b0e14', '#171c26'] })  // one colour that reads on both dark panels
+// A colour you already have, made readable: same hue, only the lightness moves
+readable('#c2410c', { background: '#0d1117' })   // '#fe784d', 7.2:1 instead of 3.7:1
+readable('#c2410c', { background: '#ffffff' })   // '#9e3206', 7.2:1 instead of 5.2:1
 
-// Things that sit near each other: look-alikes keep a safe distance apart
+// A colour for a name, readable on the background you give it, the same every time
+colorFor('orbit', { background: '#0d1117' })     // '#3dd4b9'
+colorFor('orbit', { background: '#ffffff' })     // '#046254'
+
+// Names that sit near each other: look-alikes keep a safe distance apart
 colorsFor(['item-1', 'item-2', 'item-3', 'item-4', 'item-5', 'item-6'], { distance: 40 })
 ```
 
@@ -45,15 +49,16 @@ colorsFor(['item-1', 'item-2', 'item-3', 'item-4', 'item-5', 'item-6'], { distan
 
 ## Why huehash
 
-A plain `hsl(hash % 360, 70%, 60%)` has three problems that show up the moment you put it on a real surface.
+Colours fail on real surfaces in the same few ways, whether you picked them by hand or generated them with a plain `hsl(hash % 360, 70%, 60%)`.
 
-- **No contrast guarantee.** The same hsl colour that reads on a dark page vanishes on a light one, and a yellow and a blue of the same lightness look nothing alike. huehash checks every colour against each background you pass and moves its lightness until the WCAG contrast you asked for (AAA by default) is met.
+- **No contrast guarantee.** A brand orange that reads on a white page is murky on a dark one, and a generated colour that reads on one surface vanishes on another. huehash checks every colour against each background you pass and moves its lightness until the WCAG contrast you asked for (AAA by default) is met.
 - **Unequal brightness.** Because HSL lightness is not what the eye sees, some keys glow and others disappear. huehash works in [OKLCH](https://oklch.com), where equal lightness looks equal.
 - **Neighbours collide.** Hashes cluster by chance, so two keys side by side, above or below each other can land on nearly the same hue. With `colorsFor` and a safe distance, they never do.
 
 |  | `hsl(hash % 360, 70%, 60%)` | huehash |
 |---|---|---|
 | Contrast you can rely on | no | the ratio you ask for, on every background you pass |
+| Fix a colour you already have | by eye | `readable`: same hue, lightness moved as little as needed |
 | Light and dark surfaces | one look | lightened or darkened until it reads |
 | Same key, same colour everywhere | yes | yes |
 | Equal perceived brightness | no | yes, in OKLCH |
@@ -72,22 +77,31 @@ A plain `hsl(hash % 360, 70%, 60%)` has three problems that show up the moment y
 
 ## Quick start
 
-Start with where the colour will be drawn. The name stays the same; the colour is lightened or darkened until it reads on that background.
+Start with where the colour will be drawn. A colour you already have is lightened or darkened until it reads on that background, and keeps its hue.
+
+```ts
+import { readable } from 'huehash'
+
+readable('#c2410c', { background: '#0d1117' })   // '#fe784d', 7.2:1 on a dark page (it was 3.7:1)
+readable('#c2410c', { background: '#ffffff' })   // '#9e3206', 7.2:1 on white (it was 5.2:1)
+
+// Several surfaces at once: contrast is guaranteed on all of them
+readable('#c2410c', { background: ['#0b0e14', '#171c26'] })
+
+// Say how much contrast you need; a colour that already reads comes back unchanged
+readable('#c2410c', { background: '#ffffff', minContrast: 4.5 })   // '#c2410c', WCAG AA instead of AAA
+```
+
+With no options a colour is made for a dark surface (`#161b22`) at 7:1, WCAG AAA.
+
+No colour yet? Give `colorFor` a name instead. It takes the same options, and the same name always gets the same colour:
 
 ```ts
 import { colorFor } from 'huehash'
 
 colorFor('billing', { background: '#0d1117' })   // '#fea9a2', 10.3:1 on a dark page
 colorFor('billing', { background: '#ffffff' })   // '#9c3432', 7.1:1 on white
-
-// Several surfaces at once: contrast is guaranteed on all of them
-colorFor('billing', { background: ['#0b0e14', '#171c26'] })
-
-// Say how much contrast you need
-colorFor('billing', { background: '#ffffff', minContrast: 4.5 })   // '#b04643', WCAG AA instead of AAA
 ```
-
-With no options a colour is made for a dark surface (`#161b22`) at 7:1, WCAG AAA.
 
 Pass the surface wherever a name is drawn:
 
@@ -115,7 +129,7 @@ toCssVariables(colors)
 
 ## Five promises
 
-1. **Readable.** Ask for a contrast ratio and every colour meets it, checked against each background you pass: dark, light, a panel, a hover state. The default is 7 to 1, WCAG AAA.
+1. **Readable.** Ask for a contrast ratio and every colour meets it, whether it is one you already have (`readable`) or one made for a name (`colorFor`), checked against each background you pass: dark, light, a panel, a hover state. The default is 7 to 1, WCAG AAA.
 2. **Stable.** The colour is worked out from the text and the options and nothing else. There is no table to keep, nothing to sync between services, and nothing that shifts when someone adds a name. Case and surrounding spaces do not matter: `'Orbit '` and `'orbit'` are the same key.
 3. **Apart.** With `colorsFor`, look-alike colours keep a safe distance from each other in a line, a grid or a stack of grids.
 4. **Even.** Lightness and chroma stay in a narrow band in OKLCH, so no name shouts and no name fades.
@@ -123,22 +137,25 @@ toCssVariables(colors)
 
 ## Readable on every background
 
-The contrast is the point. A colour is only useful if it can be read where it is drawn, and the same name is drawn in many places: a dark page, a light email, a tinted panel, a hovered row.
+The contrast is the point. A colour is only useful if it can be read where it is drawn, and the same colour is drawn in many places: a dark page, a light email, a tinted panel, a hovered row.
+
+`readable(color, options?)` takes a colour you already have and moves it as little as it takes. Its hue and chroma stay, only the lightness changes (lighter on dark surfaces, darker on light ones), and a colour that already reads comes back unchanged. `avoid` has no effect, because the hue never moves.
 
 ```ts
-// One surface: the colour is lightened or darkened until it reaches 7:1
-colorFor('orbit')                                         // '#3dd4b9' on the default dark surface
-colorFor('orbit', { background: '#ffffff' })              // '#046254'
-colorFor('orbit', { background: '#ffffff', minContrast: 4.5 })  // '#017665'
+readable('#c2410c')                                          // '#fe845d' on the default dark surface
+readable('#c2410c', { background: '#ffffff' })               // '#9e3206'
+readable('#c2410c', { background: '#ffffff', minContrast: 4.5 })  // '#c2410c', already AA
 
 // Several surfaces of the same kind: one colour that reaches the ratio on all of them
-colorFor('orbit', { background: ['#0b0e14', '#171c26'] })
+readable('#c2410c', { background: ['#0b0e14', '#171c26'] })
 
 // A dark theme and a light theme: ask once for each, since no single colour reads on both
-const theme = { dark: colorFor('orbit'), light: colorFor('orbit', { background: '#ffffff' }) }
+const theme = { dark: readable(brand), light: readable(brand, { background: '#ffffff' }) }
 ```
 
-Whether a colour is styled for a dark or a light surface follows the background you pass. `mode: 'dark' | 'light'` forces it. Backgrounds you pass together should be the same kind: no colour reads at 7:1 on near-black and white at once, and you get the best the surfaces allow. For a dark and a light theme, ask once for each. `describeColor(...).contrast` always tells you what was reached.
+`colorFor` and `colorsFor` take the same options and give the same guarantee for colours made from names.
+
+Whether a colour is styled for a dark or a light surface follows the background you pass. `mode: 'dark' | 'light'` forces it. Backgrounds you pass together should be the same kind: no colour reads at 7:1 on near-black and white at once, and you get the best the surfaces allow. `contrastRatio(color, background)` and `describeColor(...).contrast` tell you what was reached.
 
 ## A safe distance
 
@@ -264,6 +281,10 @@ describeColor('orbit')
 
 ## API reference
 
+### `readable(color, options?)` → `'#rrggbb'`
+
+A colour you already have (`#rgb` or `#rrggbb`), made readable on the `background`(s). Same hue and chroma, lightness moved only as far as `minContrast` needs. A colour that already meets it comes back unchanged, as `#rrggbb`. Throws a `TypeError` for anything that is not a hex colour. Uses `background`, `minContrast` and `mode`.
+
 ### `colorFor(key, options?)` → `'#rrggbb'`
 
 One colour that meets `minContrast` on every `background` you pass. The same key and options always give the same colour. Case and surrounding spaces do not matter.
@@ -289,7 +310,7 @@ Colours for keys in order, with look-alikes kept a safe distance apart. Returns 
 
 ### `createHuehash(defaults?, { cacheSize? })`
 
-Returns an object with `colorFor`, `describeColor`, `colorsFor`, `clearCache` and `cacheStats`, with its own default options and its own cache. The top-level functions use a shared instance with the default options.
+Returns an object with `readable`, `colorFor`, `describeColor`, `colorsFor`, `clearCache` and `cacheStats`, with its own default options and its own cache. The top-level functions use a shared instance with the default options.
 
 ### Options
 

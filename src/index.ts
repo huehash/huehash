@@ -13,6 +13,13 @@ const shared = createHuehash()
 /** A `#rrggbb` for a key (an id, a label, a username) that meets `minContrast` on every `background` you pass. The same key and options always give the same colour, whatever the case or surrounding spaces. */
 export const colorFor = (key: string, options?: Options): string => shared.colorFor(key, options)
 
+/**
+ * Any colour you already have (a brand colour, a colour a user picked), made readable on the `background`(s):
+ * it keeps its hue and chroma and only its lightness moves, as little as the `minContrast` needs. A colour that
+ * already reads comes back unchanged.
+ */
+export const readable = (color: string, options?: Options): string => shared.readable(color, options)
+
 /** The colour for a name together with how it was measured: OKLCH, CSS, contrast and its WCAG grade. */
 export const describeColor = (key: string, options?: Options): ColorDescription => shared.describeColor(key, options)
 

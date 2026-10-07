@@ -77,6 +77,8 @@ export type SequenceOptions = Options & {
 }
 
 export type Huehash = {
+  /** Any colour, made readable on the backgrounds: same hue and chroma, lightness moved only as far as the contrast needs. */
+  readable(color: string, options?: Options): string
   colorFor(key: string, options?: Options): string
   describeColor(key: string, options?: Options): ColorDescription
   colorsFor(keys: string[], options?: SequenceOptions): string[]
@@ -135,6 +137,20 @@ function shade(position: number, bits: number, chromaScale: number, settings: Re
     hex = oklchToHex(lightness, chroma, hue)
   }
   return hex
+}
+
+/** An existing colour, moved in lightness (and nowhere else) until the contrast is met. A colour that already meets it comes back unchanged. */
+function fit(color: string, settings: Resolved): string {
+  const hex = parseHex(color)
+  const { l, c, h } = hexToOklch(hex)
+  const tone = TONE[settings.mode]
+  let lightness = l
+  let result = hex
+  while (worstContrast(result, settings.backgrounds) < settings.minContrast && (tone.step > 0 ? lightness < tone.limit : lightness > tone.limit)) {
+    lightness += tone.step
+    result = oklchToHex(lightness, c, h)
+  }
+  return result
 }
 
 function colorFromKey(key: string, settings: Resolved): string {
@@ -259,6 +275,10 @@ export function createHuehash(defaults: Options = {}, { cacheSize = 2000 }: Hueh
   }
 
   return {
+    readable(color, options) {
+      return fit(color, settingsFor(options).settings)
+    },
+
     colorFor(key, options) {
       const { signature, settings } = settingsFor(options)
       const normalized = normalize(key)

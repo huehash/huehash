@@ -49,10 +49,27 @@ export function renderStable() {
 
 /* ── Readable ──────────────────────────────────────────────────────────── */
 
+const OWN_COLOR = /^#[0-9a-f]{6}$/i
+let ownColor = '#c2410c'
+
+export function chooseOwnColor(value: string) {
+  if (OWN_COLOR.test(value)) ownColor = value.toLowerCase()
+}
+
 export function renderReadable() {
   syncSlider('#contrast-slider', state.minContrast)
   $('#contrast-value').textContent = `${state.minContrast}:1 ${gradeFor(state.minContrast)}`
-  $('#readable-code').textContent = `colorFor('billing', {\n  background: ${jsString(state.surface)},\n  minContrast: ${state.minContrast},\n})\n// ${engine.colorFor('billing', { ...options(), minContrast: state.minContrast })}`
+  const mine = engine.readable(ownColor, { ...options(), minContrast: state.minContrast })
+  $('#readable-code').textContent = `readable(${jsString(ownColor)}, {\n  background: ${jsString(state.surface)},\n  minContrast: ${state.minContrast},\n})\n// ${jsString(mine)}\n\n// colorFor and colorsFor take the same options`
+  const own = $<HTMLInputElement>('#own-color')
+  if (document.activeElement !== own) own.value = ownColor
+  $('#own-cells').innerHTML = SURFACES.map(surface => {
+    const ink = inkFor(surface.hex)
+    const fixed = engine.readable(ownColor, { background: surface.hex, minContrast: state.minContrast })
+    const before = contrastRatio(ownColor, surface.hex)
+    const after = contrastRatio(fixed, surface.hex)
+    return `<li style="background:${surface.hex};color:${ink.muted}"><span class="mono">${surface.name}</span><b class="was" style="color:${ownColor}">Your colour</b><span class="mono">${before.toFixed(1)}:1</span><b class="now" style="color:${fixed}">Made readable</b><span class="mono">${after.toFixed(1)}:1, ${esc(fixed)}</span></li>`
+  }).join('')
 
   $('#readable-body').innerHTML = SURFACES
     .map(surface => {
