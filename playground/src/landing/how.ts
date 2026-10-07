@@ -43,6 +43,6 @@ export function renderHow() {
 }
 
 export function renderWall() {
-  $('#wall-lede').textContent = `That was one name. Here are ${WALL.length} more, and nobody picked a colour for any of them.`
+  $('#wall-lede').textContent = `That was one name. Here are ${WALL.length} more, and nobody picked a colour for any of them. Every one reads on the surface you chose.`
   $('#wall').innerHTML = WALL.map(word => `<span style="color:${engine.colorFor(word, options())}" title="${esc(word)}, ${engine.colorFor(word, options())}">${word}</span>`).join(' ')
 }

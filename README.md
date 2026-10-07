@@ -72,27 +72,30 @@ A plain `hsl(hash % 360, 70%, 60%)` has three problems that show up the moment y
 
 ## Quick start
 
+Start with where the colour will be drawn. The name stays the same; the colour is lightened or darkened until it reads on that background.
+
 ```ts
 import { colorFor } from 'huehash'
 
-// A colour that reads on the default dark surface, at 7:1 (WCAG AAA)
-colorFor('billing')                           // '#fea9a2'
-
-// Tell it where the colour will sit
-colorFor('billing', { background: '#ffffff' })
+colorFor('billing', { background: '#0d1117' })   // '#fea9a2', 10.3:1 on a dark page
+colorFor('billing', { background: '#ffffff' })   // '#9c3432', 7.1:1 on white
 
 // Several surfaces at once: contrast is guaranteed on all of them
 colorFor('billing', { background: ['#0b0e14', '#171c26'] })
 
-// Ask for a different contrast
-colorFor('billing', { minContrast: 4.5 })     // WCAG AA instead of AAA
+// Say how much contrast you need
+colorFor('billing', { background: '#ffffff', minContrast: 4.5 })   // '#b04643', WCAG AA instead of AAA
 ```
 
-Use the colour wherever a thing shows up:
+With no options a colour is made for a dark surface (`#161b22`) at 7:1, WCAG AAA.
+
+Pass the surface wherever a name is drawn:
 
 ```tsx
+const surface = '#0d1117'
+
 function Tag({ name }: { name: string }) {
-  return <span style={{ color: colorFor(name) }}>{name}</span>
+  return <span style={{ color: colorFor(name, { background: surface }) }}>{name}</span>
 }
 ```
 
@@ -263,7 +266,7 @@ describeColor('orbit')
 
 ### `colorFor(key, options?)` → `'#rrggbb'`
 
-One stable colour. Case and surrounding spaces do not matter.
+One colour that meets `minContrast` on every `background` you pass. The same key and options always give the same colour. Case and surrounding spaces do not matter.
 
 ### `describeColor(key, options?)` → `ColorDescription`
 
@@ -346,6 +349,12 @@ The cache is bounded (2,000 results per kind by default) and drops the least rec
 
 ## FAQ
 
+**Why 7:1 by default?**
+It is WCAG AAA for normal text, and it keeps small coloured text readable on a dark surface. Pass `minContrast: 4.5` for AA.
+
+**What if a surface cannot reach the contrast I asked for?**
+A mid-grey background cannot reach 7:1 with any colour. You get the best the surface allows, and `describeColor(...).contrast` tells you what that is.
+
 **Will a key always get the same colour?**
 Yes, for the same options (the background included) and the same major version. Golden tests pin the exact output. A change to them is a breaking change.
 
@@ -354,12 +363,6 @@ Yes. It is pure computation with no DOM, no Node-only APIs and no randomness, so
 
 **Can two different keys get the same colour?**
 Hashes can collide, and the wheel is finite, so yes, rarely, for keys that are far apart. `colorsFor` makes sure look-alikes are not near each other. If a colour must be unique per key, you need a palette, not a hash.
-
-**Why 7:1 by default?**
-It is WCAG AAA for normal text, and it keeps small coloured text readable on a dark surface. Pass `minContrast: 4.5` for AA.
-
-**What if a surface cannot reach the contrast I asked for?**
-A mid-grey background cannot reach 7:1 with any colour. You get the best the surface allows, and `describeColor(...).contrast` tells you what that is.
 
 **Does it handle non-Latin text and emoji?**
 Yes. Keys are normalised and hashed as UTF-8.

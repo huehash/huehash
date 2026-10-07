@@ -17,7 +17,7 @@ export const colorFor = (key: string, options?: Options): string => shared.color
 export const describeColor = (key: string, options?: Options): ColorDescription => shared.describeColor(key, options)
 
 /**
- * Colours for keys in order, so that neighbours can be told apart: no two neighbours are closer than
+ * Colours for keys in order, each meeting the same contrast as `colorFor`, and no two neighbours closer than
  * `distance` degrees on the colour wheel. Returns an array in the same order as `keys`.
  *
  * Each key starts from its own hashed colour and only moves when it would sit too close to a neighbour.
